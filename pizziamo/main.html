@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIZZIAMO?! - La tua pizzeria di fiducia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset e stili base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: #fffaf5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* Colori del brand - Ottimizzati e standardizzati */
+        :root {
+            --primary: #e50000;
+            --primary-dark: #c50000;
+            --primary-light: rgba(229, 0, 0, 0.1);
+            --secondary: #ffcd00;
+            --secondary-dark: #e6b800;
+            --secondary-light: rgba(255, 205, 0, 0.2);
+            --accent: #228b22;
+            --light: #fff8ee;
+            --dark: #2c2c2c;
+            --gray: #f5f5f5;
+            --gray-dark: #666;
+            --white: #ffffff;
+            
+            /* Standardizzazione dei valori comuni */
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 15px;
+            --border-radius-xl: 25px;
+            --border-radius-circle: 50%;
+            
+            --shadow-sm: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+            --shadow-primary: 0 8px 15px rgba(229, 0, 0, 0.25);
+            
+            --spacing-xs: 5px;
+            --spacing-sm: 10px;
+            --spacing-md: 20px;
+            --spacing-lg: 30px;
+            --spacing-xl: 50px;
+            
+            --transition-fast: all 0.2s ease;
+            --transition-normal: all 0.3s ease;
+            --transition-slow: all 0.5s ease;
+            
+            --container-width: 1200px;
+        }
+        
+        /* Utilità */
+        .container {
+            width: 100%;
+            max-width: var(--container-width);
+            padding: 0 5%;
+            margin: 0 auto;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flex-between {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .flex-column {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Bottoni */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-xl);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition-normal);
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(229, 0, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--dark);
+            box-shadow: 0 6px 15px rgba(255, 205, 0, 0.25);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 205, 0, 0.3);
+        }
+        
+        .btn-lg {
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-size: 1.2rem;
+            width: 100%;
+        }
+        
+        /* Header - Ottimizzato */
+        header {
+            background-color: var(--light);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: var(--spacing-sm) 0;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-contact-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            max-width: 60%;
+        }
+        
+        .logo {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        #logo-container {
+            height: 60px;
+            width: auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        #logo-container img {
+            max-height: 100%;
+            max-width: 120px;
+            object-fit: contain;
+        }
+        
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            font-size: 0.85rem;
+            color: var(--dark);
+        }
+        
+        .address, .phone {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .icon {
+            color: var(--primary);
+            flex-shrink: 0;
+            font-style: normal;
+        }
+        
+        .main-nav {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .main-nav ul {
+            display: flex;
+            list-style: none;
+            gap: var(--spacing-md);
+        }
+        
+        .main-nav a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 600;
+            transition: var(--transition-normal);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: var(--border-radius-sm);
+            white-space: nowrap;
+        }
+        
+        .main-nav a:hover {
+            color: var(--primary);
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        
+        /* Hero Section - Ottimizzato */
+        .hero {
+            background-color: var(--light);
+            color: var(--dark);
+            padding: var(--spacing-xl) 0;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .hero-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--spacing-xl);
+        }
+        
+        /* Carosello - Ottimizzato */
+        .carousel-container {
+            flex: 1 1 650px;
+            position: relative;
+            max-width: 65%;
+            overflow: hidden;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .carousel-slide {
+            min-width: 100%;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .carousel-slides {
+            position: relative;
+            height: 450px;
+        }
+        
+        .carousel-slide.active {
+            display: block;
+            opacity: 1;
+        }
+        
+        .carousel-slide img {
+            width: 100%;
+            height: 450px;
+            object-fit: cover;
+        }
+        
+        .carousel-controls {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+            padding: 0 var(--spacing-sm);
+        }
+        
+        .carousel-btn {
+            background-color: rgba(255, 255, 255, 0.8);
+            color: var(--primary);
+            border: none;
+            font-size: 28px;
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius-circle);
+            cursor: pointer;
+            transition: var(--transition-normal);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .carousel-btn:hover {
+            background-color: var(--white);
+            transform: scale(1.1);
+        }
+        
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            position: absolute;
+            bottom: var(--spacing-md);
+            width: 100%;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: var(--border-radius-circle);
+            margin: 0 8px;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .dot.active {
+            background-color: var(--white);
+            transform: scale(1.2);
+        }
+        
+        /* Pulsanti Hero - Ottimizzati */
+        .hero-buttons {
+            flex: 1 1 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-lg);
+            max-width: 35%;
+        }
+        
+        .hero-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            background-color: var(--primary);
+            color: var(--white);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--border-radius-md);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.3rem;
+            transition: var(--transition-normal);
+            text-align: center;
+            width: 100%;
+            max-width: 300px;
+            box-shadow: var(--shadow-primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: var(--transition-normal);
+        }
+        
+        .hero-btn:hover::before {
+            left: 100%;
+        }
+        
+        .hero-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(229, 0, 0, 0.3);
+        }
+        
+        .mobile-only {
+            display: none;
+        }
+        
+        /* Sezioni - Standardizzate */
+        .section {
+            padding: var(--spacing-xl) 0;
+        }
+        
+        .section-title {
+            font-size: 2.2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--primary);
+            position: relative;
+            display: block;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            width: auto;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 3px;
+            background-color: var(--secondary);
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* News Cards - Ottimizzate */
+        .news-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            margin-top: var(--spacing-xl);
+        }
+        
+        .card {
+            flex: 1 1 300px;
+            max-width: 350px;
+            background-color: var(--white);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-normal);
+            position: relative;
+        }
+        
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 0%, var(--primary-light) 100%);
+            z-index: -1;
+            opacity: 0;
+            transition: var(--transition-normal);
+        }
+        
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card:hover::before {
+            opacity: 1;
+        }
+        
+        .card-img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            transition: transform 0.6s;
+        }
+        
+        .card:hover .card-img {
+            transform: scale(1.05);
+        }
+        
+        .card-content {
+            padding: var(--spacing-lg);
+        }
+        
+        .card-title {
+            color: var(--dark);
+            margin-bottom: var(--spacing-sm);
+            font-size: 1.4rem;
+            position: relative;
+            padding-bottom: var(--spacing-sm);
+        }
+        
+        .card-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--primary);
+        }
+        
+        .card-text {
+            margin-bottom: var(--spacing-md);
+            line-height: 1.6;
+            color: var(--gray-dark);
+        }
+        
+        /* Come Funziona - Ottimizzato */
+        .how-it-works {
+            background-color: var(--light);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-md) auto;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .how-it-works::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, var(--secondary) 0%, transparent 70%);
+            opacity: 0.4;
+            border-radius: var(--border-radius-circle);
+            transform: translate(30%, -30%);
+        }
+        
+        .how-it-works::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+            opacity: 0.3;
+            border-radius: var(--border-radius-circle);
+            transform: translate(-30%, 30%);
+        }
+        
+        .how-it-works-text {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto var(--spacing-xl);
+            line-height: 1.6;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .steps-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-lg);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: calc(16.66% + 20px);
+            right: calc(16.66% + 20px);
+            height: 3px;
+            background: linear-gradient(to right, transparent, var(--primary), var(--secondary), transparent);
+            z-index: -1;
+        }
+        
+        .step-card {
+            flex: 1 1 250px;
+            max-width: 300px;
+            background-color: var(--white);
+            padding: 35px 25px;
+            border-radius: var(--border-radius-lg);
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-normal);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, #ff3b3b 100%);
+            color: var(--white);
+            border-radius: var(--border-radius-circle);
+            margin: 0 auto var(--spacing-md);
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: var(--shadow-primary);
+            position: relative;
+        }
+        
+        .step-number::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: linear-gradient(135deg, var(--primary) 0%, #ff3b3b 100%);
+            border-radius: var(--border-radius-circle);
+            opacity: 0.3;
+            z-index: -1;
+        }
+        
+        .step-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: var(--spacing-sm);
+            color: var(--primary);
+        }
+        
+        .step-card p {
+            line-height: 1.6;
+            color: var(--gray-dark);
+        }
+        
+        /* App Download - Ottimizzato */
+        .app-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--spacing-xl);
+            margin-top: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+        
+        .app-content {
+            flex: 1 1 500px;
+            text-align: left;
+            max-width: 600px;
+        }
+        
+        .app-content h3 {
+            font-size: 1.6rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--dark);
+        }
+        
+        .app-content ul {
+            list-style-position: inside;
+            margin: var(--spacing-md) 0;
+        }
+        
+        .app-content li {
+            margin-bottom: var(--spacing-xs);
+            color: var(--gray-dark);
+        }
+        
+        .app-image {
+            flex: 0 1 300px;
+        }
+        
+        .app-image img {
+            max-width: 100%;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .store-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+        
+        /* FAQ - Ottimizzato */
+        .faq-section {
+            background-color: var(--light);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            margin: var(--spacing-md) auto;
+            box-shadow: var(--shadow-md);
+            width: 100%;
+        }
+        
+        .faq-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .faq-item {
+            background-color: var(--white);
+            margin-bottom: var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-normal);
+        }
+        
+        .faq-item:hover {
+            box-shadow: var(--shadow-md);
+        }
+        
+        .faq-question {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--white);
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            transition: var(--transition-normal);
+        }
+        
+        .faq-question:hover {
+            color: var(--primary);
+        }
+        
+        .faq-answer {
+            padding: var(--spacing-sm) var(--spacing-md);
+            display: none;
+            color: var(--gray-dark);
+        }
+        
+        .faq-question::after {
+            content: '+';
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .faq-item.active .faq-question::after {
+            content: '-';
+        }
+        
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+        
+        /* Team - Ottimizzato */
+        .team-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-lg);
+            justify-content: center;
+            margin-top: var(--spacing-lg);
+        }
+        
+        .team-member {
+            flex: 1 1 250px;
+            max-width: 280px;
+            text-align: center;
+            background-color: var(--white);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-normal);
+        }
+        
+        .team-member:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .team-member img {
+            width: 150px;
+            height: 150px;
+            border-radius: var(--border-radius-circle);
+            object-fit: cover;
+            margin-bottom: var(--spacing-sm);
+            border: 3px solid var(--primary);
+        }
+        
+        .team-member h3 {
+            color: var(--dark);
+            margin-bottom: 5px;
+            font-size: 1.2rem;
+        }
+        
+        .team-member p {
+            color: var(--gray-dark);
+            font-size: 0.9rem;
+        }
+        
+        /* Footer - Ottimizzato */
+        footer {
+            background-color: var(--dark);
+            color: var(--white);
+            padding: var(--spacing-xl) 5% var(--spacing-md);
+            margin-top: var(--spacing-xl);
+        }
+        
+        .footer-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xl);
+            justify-content: space-between;
+            max-width: var(--container-width);
+            margin: 0 auto;
+        }
+        
+        .footer-column {
+            flex: 1 1 250px;
+        }
+        
+        .footer-column h3 {
+            margin-bottom: var(--spacing-md);
+            font-size: 1.3rem;
+            color: var(--secondary);
+            position: relative;
+            display: inline-block;
+            padding-bottom: var(--spacing-xs);
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary);
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column li {
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .footer-column a {
+            text-decoration: none;
+            color: #ddd;
+            transition: var(--transition-normal);
+            display: inline-block;
+        }
+        
+        .footer-column a:hover {
+            color: var(--secondary);
+            transform: translateX(3px);
+        }
+        
+        .social-icons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: #444;
+            border-radius: var(--border-radius-circle);
+            text-align: center;
+            transition: var(--transition-normal);
+            color: var(--white);
+            text-decoration: none;
+        }
+        
+        .social-icon:hover {
+            background-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .footer-newsletter input {
+            padding: var(--spacing-sm);
+            width: 100%;
+            margin-bottom: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            border: none;
+            background-color: #444;
+            color: var(--white);
+        }
+        
+        .footer-newsletter input::placeholder {
+            color: #aaa;
+        }
+        
+        .footer-newsletter button {
+            width: 100%;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: var(--spacing-xl);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid #444;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Design - Ottimizzato */
+        @media (max-width: 1100px) {
+            .header-container {
+                flex-wrap: nowrap;
+            }
+            
+            .logo-contact-container {
+                max-width: 50%;
+            }
+            
+            .main-nav ul {
+                gap: var(--spacing-sm);
+            }
+            
+            .main-nav a {
+                font-size: 1rem;
+                padding: 8px 10px;
+            }
+            
+            #logo-container {
+                height: 55px;
+            }
+            
+            #logo-container img {
+                max-width: 100px;
+            }
+            
+            .contact-info {
+                font-size: 0.8rem;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .hero-container {
+                flex-direction: row;
+                align-items: stretch;
+            }
+            
+            .carousel-container {
+                max-width: 60%;
+            }
+            
+            .hero-buttons {
+                max-width: 40%;
+            }
+            
+            .carousel-slide img {
+                height: 380px;
+            }
+            
+            .steps-container::before {
+                display: none;
+            }
+            
+            .step-card {
+                flex: 1 1 200px;
+            }
+        }
+        
+        @media (max-width: 850px) {
+            .header-container {
+                flex-direction: column;
+                align-items: center;
+                padding: var(--spacing-sm);
+            }
+            
+            .logo-contact-container {
+                max-width: 100%;
+                width: 100%;
+                justify-content: center;
+                margin-bottom: var(--spacing-sm);
+            }
+            
+            .main-nav {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .main-nav ul {
+                justify-content: center;
+                width: 100%;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            :root {
+                --spacing-xl: 40px;
+                --spacing-lg: 25px;
+            }
+            
+            .logo-contact-container {
+                flex-direction: column;
+                width: 100%;
+                text-align: center;
+                gap: var(--spacing-sm);
+            }
+            
+            .contact-info {
+                align-items: center;
+            }
+            
+            .address, .phone {
+                justify-content: center;
+            }
+            
+            .main-nav {
+                margin-top: var(--spacing-sm);
+            }
+            
+            .main-nav ul {
+                flex-wrap: wrap;
+                gap: var(--spacing-sm);
+            }
+            
+            .hero-container {
+                flex-direction: column;
+            }
+            
+            .carousel-container {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .hero-buttons {
+                width: 100%;
+                max-width: 100%;
+                margin-top: var(--spacing-md);
+            }
+            
+            .carousel-slide img {
+                height: 280px;
+            }
+            
+            .mobile-only {
+                display: flex;
+            }
+            
+            .section {
+                padding: var(--spacing-lg) 0;
+            }
+            
+            .app-content {
+                text-align: center;
+            }
+            
+            .app-content ul {
+                text-align: left;
+            }
+            
+            .store-buttons {
+                justify-content: center;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .how-it-works {
+                padding: var(--spacing-lg) var(--spacing-md);
+            }
+            
+            .faq-section {
+                padding: var(--spacing-lg) var(--spacing-sm);
+            }
+            
+            .team-container, .news-container {
+                gap: var(--spacing-md);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            :root {
+                --spacing-lg: 20px;
+                --spacing-md: 15px;
+            }
+            
+            .carousel-slide img {
+                height: 220px;
+            }
+            
+            .hero-btn {
+                font-size: 1.1rem;
+                padding: var(--spacing-sm) var(--spacing-md);
+            }
+            
+            .section-title {
+                font-size: 1.6rem;
+            }
+            
+            .card, .team-member {
+                max-width: 100%;
+            }
+            
+            .contact-info span {
+                font-size: 0.75rem;
+            }
+            
+            .step-number {
+                width: 50px;
+                height: 50px;
+                font-size: 1.3rem;
+            }
+            
+            .step-card h3 {
+                font-size: 1.2rem;
+            }
+            
+            .faq-question {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header con Logo e Menu Principale -->
+    <header>
+        <div class="container header-container">
+            <div class="logo-contact-container">
+                <a href="#" class="logo">
+                    <div id="logo-container">
+                        <img src="logopizzeria.png" alt="PIZZIAMO Logo">
+                    </div>
+                </a>
+                <div class="contact-info">
+                    <div class="address">
+                        <i class="icon">📍</i>
+                        <span>Via Pontegradella 289/A, 44123 Ferrara (FE)</span>
+                    </div>
+                    <div class="phone">
+                        <i class="icon">📞</i>
+                        <span>Tel: 000000000</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="#chi-siamo"><i class="icon">👥</i> Chi siamo</a></li>
+                    <li><a href="#menu"><i class="icon">🍕</i> Menù</a></li>
+                    <li><a href="#app"><i class="icon">📱</i> Scarica App</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="container hero-container">
+            <!-- Carosello -->
+            <div class="carousel-container">
+                <div class="carousel-slides">
+                    <div class="carousel-slide active">
+                        <img src="pizza1.jpg" alt="Pizza Speciale">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="pizza3.jpg" alt="Offerta Weekend">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="pizza4.jpg" alt="Nuovi Gusti">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="pizza5.jpg" alt="Pizza Speciale">
+                    </div>
+                    <div class="carousel-slide">
+                        <img src="pizza.jpg" alt="Pizza Top">
+                    </div>
+                </div>
+                <div class="carousel-controls">
+                    <button class="carousel-btn carousel-prev">❮</button>
+                    <button class="carousel-btn carousel-next">❯</button>
+                </div>
+                <div class="carousel-dots">
+                    <span class="dot active" data-slide="0"></span>
+                    <span class="dot" data-slide="1"></span>
+                    <span class="dot" data-slide="2"></span>
+                    <span class="dot" data-slide="3"></span>
+                    <span class="dot" data-slide="4"></span>
+                </div>
+            </div>
+            
+            <!-- Pulsanti Hero -->
+            <div class="hero-buttons">
+                <a href="https://wbpp.it/o/?900=" target="_blank" class="hero-btn"><i class="icon">📱</i> Scarica App</a>
+                <a href="https://wbpp.it/so/?900" class="hero-btn"><i class="icon">🛒</i> Ordina Subito</a>
+                <a href="tel:+39000000000" class="hero-btn mobile-only"><i class="icon">📞</i> Chiamaci</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Novità Section -->
+    <section id="novita" class="section">
+        <div class="container">
+            <h2 class="section-title">Le nostre novità</h2>
+            <div class="news-container">
+                <div class="card">
+                    <img src="pizza1.jpg" alt="Pizza Stagionale" class="card-img">
+                    <div class="card-content">
+                        <h3 class="card-title">Pizza Stagionale</h3>
+                        <p class="card-text">Scopri la nostra nuova pizza con ingredienti freschi di stagione. Un'esplosione di sapori che ti conquisterà.</p>
+                        <a href="#" class="btn btn-primary">Scopri di più</a>
+                    </div>
+                </div>
+                <div class="card">
+                    <img src="pizza3.jpg" alt="Consegna Express" class="card-img">
+                    <div class="card-content">
+                        <h3 class="card-title">Consegna Express</h3>
+                        <p class="card-text">Abbiamo potenziato il nostro servizio di consegna. La tua pizza arriverà in meno di 30 minuti o è gratis!</p>
+                        <a href="#" class="btn btn-primary">Dettagli</a>
+                    </div>
+                </div>
+                <div class="card">
+                    <img src="pizza2.jpg" alt="Programma Fedeltà" class="card-img">
+                    <div class="card-content">
+                        <h3 class="card-title">Programma Fedeltà</h3>
+                        <p class="card-text">Registrati al nostro programma fedeltà e ottieni punti ad ogni ordine. I premi ti aspettano!</p>
+                        <a href="#" class="btn btn-primary">Iscriviti</a>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Come Funziona Section -->
+    <section id="come-funziona" class="section">
+        <div class="container">
+            <div class="how-it-works">
+                <h2 class="section-title">Come Funziona?</h2>
+            <p class="how-it-works-text">Ordinare la tua pizza preferita è semplice e veloce con il nostro sistema in 3 passi:</p>
+            <div class="steps-container">
+                <div class="step-card">
+                    <span class="step-number">1</span>
+                    <h3>Scarica l'App</h3>
+                    <p>Scarica la nostra app gratuita disponibile per iOS e Android.</p>
+                </div>
+                <div class="step-card">
+                    <span class="step-number">2</span>
+                    <h3>Scegli il tuo gusto</h3>
+                    <p>Sfoglia il menu e personalizza la tua pizza come preferisci.</p>
+                </div>
+                <div class="step-card">
+                    <span class="step-number">3</span>
+                    <h3>Ricevi e Gusta</h3>
+                    <p>Paga online e attendi la consegna a domicilio o passa a ritirare.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- App Download Section -->
+    <section id="app" class="section">
+        <div class="container">
+            <h2 class="section-title">Scarica la nostra App</h2>
+            <div class="app-container">
+                <div class="app-content">
+                    <h3>Ordina dove e quando vuoi con l'app PIZZIAMO</h3>
+                    <p>L'app PIZZIAMO è il modo più veloce per ordinare la tua pizza preferita. Disponibile per iOS e Android, ti permette di:</p>
+                    <ul>
+                        <li>Ordinare in pochi click</li>
+                        <li>Salvare i tuoi indirizzi preferiti</li>
+                        <li>Tracciare la consegna in tempo reale</li>
+                        <li>Accumulare punti fedeltà</li>
+                        <li>Ricevere offerte esclusive</li>
+                    </ul>
+                    <div class="store-buttons">
+                        <a href="https://apps.apple.com/it/app/pizziamo/id1441122313" target="_blank" class="btn btn-primary">App Store</a>
+                        <a href="https://play.google.com/store/apps/details?id=net.pizziamo.ordine" target="_blank" class="btn btn-secondary">Google Play</a>
+                    </div>
+                </div>
+                <div class="app-image">
+                    <img src="qr.png" alt="App PIZZIAMO">
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- FAQ Section -->
+    <section id="faq" class="section">
+        <div class="container">
+            <div class="faq-section">
+                <h2 class="section-title">Domande Frequenti</h2>
+            <div class="faq-container">
+                <div class="faq-item">
+                    <div class="faq-question">Quali zone coprite con la consegna?</div>
+                    <div class="faq-answer">
+                        <p>Consegniamo in tutta la città e nei comuni limitrofi entro un raggio di 10 km dal nostro locale. Per verificare se la tua zona è coperta, inserisci il tuo indirizzo nell'app o contattaci direttamente.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Quanto tempo impiegate per la consegna?</div>
+                    <div class="faq-answer">
+                        <p>I nostri tempi medi di consegna sono di 30-40 minuti, a seconda della distanza e del traffico. Durante i momenti di picco (weekend e serate), potrebbero esserci lievi ritardi. Puoi sempre tracciare lo stato del tuo ordine tramite l'app.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Posso personalizzare la mia pizza?</div>
+                    <div class="faq-answer">
+                        <p>Assolutamente sì! Puoi aggiungere o rimuovere ingredienti dalle nostre pizze standard o creare la tua pizza partendo da zero. Tutte le personalizzazioni sono disponibili nell'app o ordinando telefonicamente.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Avete opzioni per intolleranti o vegani?</div>
+                    <div class="faq-answer">
+                        <p>Sì, offriamo opzioni senza glutine, lattosio e completamente vegane. La nostra base senza glutine è prodotta in ambiente controllato e abbiamo un'ampia selezione di ingredienti vegani. Specifica le tue esigenze al momento dell'ordine.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Team Section -->
+    <section id="team" class="section">
+        <div class="container">
+            <h2 class="section-title">Il Nostro Team</h2>
+            <div class="team-container">
+                <div class="team-member">
+                    <img src="pizzaiolo1.jpg" alt="Francesco">
+                    <h3>Caccia</h3>
+                    <p>Pizzaiolo</p>
+                    <p>Con 20 anni di esperienza, Marco è il maestro dell'impasto perfetto.</p>
+                </div>
+                <div class="team-member">
+                    <img src="pizzaiolo1.jpg" alt="Laura Bianchi">
+                    <h3>Laura Bianchi</h3>
+                    <p>Manager</p>
+                    <p>Laura coordina tutto il team per garantire un servizio impeccabile.</p>
+                </div>
+                <div class="team-member">
+                    <img src="pizzaiolo2.jpg" alt="Giulio Verdi">
+                    <h3>Giulio Verdi</h3>
+                    <p>Responsabile Consegne</p>
+                    <p>Giulio assicura che la tua pizza arrivi calda e in tempo record.</p>
+                </div>
+                <div class="team-member">
+                    <img src="pizzaiolo2.jpg" alt="Sofia Neri">
+                    <h3>Sofia Neri</h3>
+                    <p>Sviluppatrice App</p>
+                    <p>Sofia ha creato l'app PIZZIAMO per rendere i tuoi ordini più semplici.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <h3>PIZZIAMO?!</h3>
+                <p>La pizza più buona della città, con ingredienti freschi e di qualità. Dal 2010 al vostro servizio.</p>
+                <div class="social-icons">
+                    <a href="#" class="social-icon">F</a>
+                    <a href="#" class="social-icon">I</a>
+                    <a href="#" class="social-icon">T</a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Contatti</h3>
+                <ul>
+                    <li>Via Pontegradella 289/A, 44123 Ferrara (FE)</li>
+                    <li>Tel: 000000000</li>
+                    <li>Email: info@pizziamo.it</li>
+                    <li>Orari: 17:00-22:00</li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Link Utili</h3>
+                <ul>
+                    <li><a href="#">Menu</a></li>
+                    <li><a href="#">Lavora con noi</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-column footer-newsletter">
+                <h3>Newsletter</h3>
+                <p>Iscriviti per ricevere offerte esclusive e novità.</p>
+                <form>
+                    <input type="email" placeholder="La tua email">
+                    <button type="submit" class="btn btn-primary">Iscriviti</button>
+                </form>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 PIZZIAMO?! Tutti i diritti riservati.</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Script ottimizzato per il funzionamento delle FAQ
+        document.addEventListener('DOMContentLoaded', function() {
+            // Funzione per le FAQ
+            document.querySelectorAll('.faq-question').forEach(question => {
+                question.addEventListener('click', () => {
+                    const item = question.parentNode;
+                    
+                    // Chiudi tutti gli altri elementi FAQ aperti
+                    document.querySelectorAll('.faq-item.active').forEach(activeItem => {
+                        if (activeItem !== item) {
+                            activeItem.classList.remove('active');
+                            const answer = activeItem.querySelector('.faq-answer');
+                            answer.style.maxHeight = null;
+                        }
+                    });
+                    
+                    // Apri/chiudi l'elemento cliccato
+                    item.classList.toggle('active');
+                    const answer = item.querySelector('.faq-answer');
+                    
+                    if (item.classList.contains('active')) {
+                        answer.style.display = 'block';
+                    } else {
+                        setTimeout(() => {
+                            answer.style.display = 'none';
+                        }, 300);
+                    }
+                });
+            });
+            
+            // Funzione ottimizzata per il carosello
+            const slides = document.querySelectorAll('.carousel-slide');
+            const dots = document.querySelectorAll('.dot');
+            const prevButton = document.querySelector('.carousel-prev');
+            const nextButton = document.querySelector('.carousel-next');
+            let currentSlide = 0;
+            let autoPlayTimer;
+            let isTransitioning = false;
+            
+            // Funzione per mostrare uno slide specifico
+            function showSlide(n) {
+                if (isTransitioning) return;
+                isTransitioning = true;
+                
+                // Nascondi lo slide attuale
+                if (slides[currentSlide]) {
+                    slides[currentSlide].style.opacity = '0';
+                    setTimeout(() => {
+                        slides[currentSlide].style.display = 'none';
+                    }, 300);
+                }
+                
+                // Rimuovi 'active' da tutti i dots
+                dots.forEach(dot => {
+                    dot.classList.remove('active');
+                });
+                
+                // Dopo la transizione di fade-out, mostra lo slide corrente con fade-in
+                setTimeout(() => {
+                    // Nascondi tutti gli altri slide
+                    slides.forEach((slide, i) => {
+                        if (i !== n) {
+                            slide.style.display = 'none';
+                            slide.classList.remove('active');
+                        }
+                    });
+                    
+                    // Mostra il nuovo slide
+                    slides[n].style.display = 'block';
+                    setTimeout(() => {
+                        slides[n].style.opacity = '1';
+                        slides[n].classList.add('active');
+                    }, 50);
+                    
+                    dots[n].classList.add('active');
+                    currentSlide = n;
+                    isTransitioning = false;
+                }, 300);
+            }
+            
+            // Funzione per passare allo slide successivo
+            function nextSlide() {
+                let newSlide = currentSlide + 1;
+                if (newSlide >= slides.length) {
+                    newSlide = 0;
+                }
+                showSlide(newSlide);
+            }
+            
+            // Funzione per passare allo slide precedente
+            function prevSlide() {
+                let newSlide = currentSlide - 1;
+                if (newSlide < 0) {
+                    newSlide = slides.length - 1;
+                }
+                showSlide(newSlide);
+            }
+            
+            // Event listener per i pulsanti prev/next
+            prevButton.addEventListener('click', () => {
+                clearInterval(autoPlayTimer);
+                prevSlide();
+                startAutoPlay();
+            });
+            
+            nextButton.addEventListener('click', () => {
+                clearInterval(autoPlayTimer);
+                nextSlide();
+                startAutoPlay();
+            });
+            
+            // Event listener per i dots
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    if (currentSlide !== index) {
+                        clearInterval(autoPlayTimer);
+                        showSlide(index);
+                        startAutoPlay();
+                    }
+                });
+            });
+            
+            // Funzione per avviare l'auto-play
+            function startAutoPlay() {
+                autoPlayTimer = setInterval(nextSlide, 5000);
+            }
+            
+            // Avvia l'auto-play al caricamento
+            startAutoPlay();
+            
+            // Aggiungi interazione touch per dispositivi mobili
+            const carouselContainer = document.querySelector('.carousel-container');
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            carouselContainer.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+            
+            carouselContainer.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, false);
+            
+            function handleSwipe() {
+                const threshold = 50; // Soglia minima per considerare uno swipe
+                if (touchEndX < touchStartX - threshold) {
+                    // Swipe verso sinistra
+                    clearInterval(autoPlayTimer);
+                    nextSlide();
+                    startAutoPlay();
+                }
+                if (touchEndX > touchStartX + threshold) {
+                    // Swipe verso destra
+                    clearInterval(autoPlayTimer);
+                    prevSlide();
+                    startAutoPlay();
+                }
+            }
+            
+            // Pausa autoplay quando il mouse è sopra il carosello
+            carouselContainer.addEventListener('mouseenter', () => {
+                clearInterval(autoPlayTimer);
+            });
+            
+            carouselContainer.addEventListener('mouseleave', () => {
+                startAutoPlay();
+            });
+            
+            // Smooth scroll ottimizzato per i link di navigazione
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        const headerHeight = document.querySelector('header').offsetHeight;
+                        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
+                        
+                        window.scrollTo({
+                            top: targetPosition - headerHeight - 20,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // Funzione per gestire il pulsante di chiamata su mobile
+            function checkMobile() {
+                const mobileButton = document.querySelector('.mobile-only');
+                if (window.innerWidth <= 768) {
+                    mobileButton.style.display = 'flex';
+                } else {
+                    mobileButton.style.display = 'none';
+                }
+            }
+            
+            // Controlla al caricamento e quando si ridimensiona la finestra
+            checkMobile();
+            window.addEventListener('resize', checkMobile);
+            
+            // Effetto di scrolling per l'header
+            let lastScrollTop = 0;
+            const header = document.querySelector('header');
+            
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > lastScrollTop && scrollTop > 300) {
+                    // Scroll verso il basso
+                    header.style.transform = 'translateY(-100%)';
+                } else {
+                    // Scroll verso l'alto
+                    header.style.transform = 'translateY(0)';
+                }
+                
+                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+            }, false);
+        });
+    </script>
+</body>
+</html>
