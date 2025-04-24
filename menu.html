@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menù Pizze - PIZZIAMO?! - La tua pizzeria di fiducia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset e stili base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: #fffaf5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* Colori del brand - Ottimizzati e standardizzati */
+        :root {
+            --primary: #e50000;
+            --primary-dark: #c50000;
+            --primary-light: rgba(229, 0, 0, 0.1);
+            --secondary: #ffcd00;
+            --secondary-dark: #e6b800;
+            --secondary-light: rgba(255, 205, 0, 0.2);
+            --accent: #228b22;
+            --light: #fff8ee;
+            --dark: #2c2c2c;
+            --gray: #f5f5f5;
+            --gray-dark: #666;
+            --white: #ffffff;
+            
+            /* Standardizzazione dei valori comuni */
+            --border-radius-sm: 8px;
+            --border-radius-md: 12px;
+            --border-radius-lg: 15px;
+            --border-radius-xl: 25px;
+            --border-radius-circle: 50%;
+            
+            --shadow-sm: 0 4px 8px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 6px 15px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
+            --shadow-primary: 0 8px 15px rgba(229, 0, 0, 0.25);
+            
+            --spacing-xs: 5px;
+            --spacing-sm: 10px;
+            --spacing-md: 20px;
+            --spacing-lg: 30px;
+            --spacing-xl: 50px;
+            
+            --transition-fast: all 0.2s ease;
+            --transition-normal: all 0.3s ease;
+            --transition-slow: all 0.5s ease;
+            
+            --container-width: 1200px;
+        }
+        
+        /* Utilità */
+        .container {
+            width: 100%;
+            max-width: var(--container-width);
+            padding: 0 5%;
+            margin: 0 auto;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .flex-between {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .flex-column {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Bottoni */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-xl);
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition-normal);
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(229, 0, 0, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--dark);
+            box-shadow: 0 6px 15px rgba(255, 205, 0, 0.25);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255, 205, 0, 0.3);
+        }
+        
+        /* Header - Ottimizzato */
+        header {
+            background-color: var(--light);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: var(--spacing-sm) 0;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-contact-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            max-width: 60%;
+        }
+        
+        .logo {
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        #logo-container {
+            height: 60px;
+            width: auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        #logo-container img {
+            max-height: 100%;
+            max-width: 120px;
+            object-fit: contain;
+        }
+        
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            font-size: 0.85rem;
+            color: var(--dark);
+        }
+        
+        .address, .phone {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .icon {
+            color: var(--primary);
+            flex-shrink: 0;
+            font-style: normal;
+        }
+        
+        .main-nav {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .main-nav ul {
+            display: flex;
+            list-style: none;
+            gap: var(--spacing-md);
+        }
+        
+        .main-nav a {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 600;
+            transition: var(--transition-normal);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: var(--border-radius-sm);
+            white-space: nowrap;
+        }
+        
+        .main-nav a:hover, .main-nav a.active {
+            color: var(--primary);
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
+        }
+        
+        /* Page Hero */
+        .page-hero {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: var(--spacing-xl) 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .page-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('img/pizza-pattern.png');
+            opacity: 0.1;
+            z-index: 1;
+        }
+        
+        .page-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .page-hero h1 {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-md);
+            position: relative;
+            display: inline-block;
+        }
+        
+        .page-hero h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background-color: var(--secondary);
+            border-radius: 2px;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb a {
+            color: var(--white);
+            opacity: 0.8;
+            text-decoration: none;
+            transition: var(--transition-normal);
+        }
+        
+        .breadcrumb a:hover {
+            opacity: 1;
+        }
+        
+        .breadcrumb span {
+            opacity: 0.5;
+        }
+        
+        /* Sezioni */
+        .section {
+            padding: var(--spacing-xl) 0;
+        }
+        
+        .section-title {
+            font-size: 2.2rem;
+            margin-bottom: var(--spacing-lg);
+            color: var(--primary);
+            position: relative;
+            display: block;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            width: auto;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 3px;
+            background-color: var(--secondary);
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .section-subtitle {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: var(--spacing-md);
+            position: relative;
+            padding-left: var(--spacing-md);
+        }
+        
+        .section-subtitle::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 25px;
+            background-color: var(--primary);
+            border-radius: 2px;
+        }
+        
+        /* Menu Pizze */
+        .menu-container {
+            margin-top: var(--spacing-lg);
+        }
+        
+        .menu-filter {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .filter-btn {
+            padding: var(--spacing-xs) var(--spacing-md);
+            background-color: var(--white);
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: var(--border-radius-xl);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition-normal);
+        }
+        
+        .filter-btn:hover, .filter-btn.active {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+        
+        .pizze-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: var(--spacing-xl);
+        }
+        
+        .pizza-card {
+            background-color: var(--white);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-normal);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pizza-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .pizza-image-container {
+            position: relative;
+            overflow: hidden;
+            height: 280px;
+        }
+        
+        .pizza-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition-normal);
+        }
+        
+        .pizza-card:hover .pizza-image {
+            transform: scale(1.05);
+        }
+        
+        .pizza-badge {
+            position: absolute;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: var(--secondary);
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 0.8rem;
+            border-radius: var(--border-radius-xl);
+            z-index: 2;
+        }
+        
+        .pizza-name-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            padding: var(--spacing-md);
+            transition: var(--transition-normal);
+        }
+        
+        .pizza-title {
+            color: var(--white);
+            font-size: 1.6rem;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        .pizza-content {
+            padding: var(--spacing-md);
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .pizza-description {
+            margin-bottom: var(--spacing-md);
+            color: var(--gray-dark);
+            flex-grow: 1;
+        }
+        
+        .pizza-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+        }
+        
+        .pizza-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .pizza-addons {
+            display: flex;
+            gap: var(--spacing-xs);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .pizza-addon {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            background-color: var(--gray);
+            border-radius: var(--border-radius-sm);
+            color: var(--gray-dark);
+        }
+        
+        .pizza-logo {
+            position: absolute;
+            top: var(--spacing-md);
+            left: var(--spacing-md);
+            width: 40px;
+            height: 40px;
+            z-index: 2;
+        }
+        
+        .pizza-limited {
+            position: absolute;
+            bottom: var(--spacing-md);
+            right: var(--spacing-md);
+            width: 80px;
+            height: auto;
+            z-index: 2;
+        }
+        
+        .pizza-smile {
+            position: absolute;
+            bottom: var(--spacing-md);
+            right: var(--spacing-md);
+            width: 60px;
+            height: auto;
+            z-index: 2;
+        }
+        
+        .pizza-name-large {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--secondary);
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5), -2px -2px 4px rgba(0,0,0,0.5);
+            z-index: 2;
+            text-transform: uppercase;
+        }
+        
+        /* Menu Categories Tabs */
+        .menu-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: var(--spacing-xl);
+            overflow-x: auto;
+            padding-bottom: var(--spacing-sm);
+        }
+        
+        .menu-tab {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            margin: 0 var(--spacing-xs);
+            background-color: var(--white);
+            color: var(--dark);
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            font-size: 1rem;
+        }
+        
+        .menu-tab.active {
+            background-color: var(--primary);
+            color: var(--white);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .menu-tab:hover:not(.active) {
+            background-color: var(--light);
+            transform: translateY(-3px);
+        }
+        
+        .menu-category {
+            display: none;
+        }
+        
+        .menu-category.active {
+            display: block;
+        }
+        
+        .category-description {
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto var(--spacing-xl);
+            font-size: 1.1rem;
+            color: var(--gray-dark);
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary) 0%, #ff3b3b 100%);
+            color: var(--white);
+            padding: var(--spacing-xl) 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-top: var(--spacing-xl);
+        }
+        
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: url('img/pizza-slice.png') no-repeat center/contain;
+            opacity: 0.1;
+            transform: rotate(45deg);
+        }
+        
+        .cta-section::after {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: url('img/pizza-slice.png') no-repeat center/contain;
+            opacity: 0.1;
+            transform: rotate(-135deg);
+        }
+        
+        .cta-content {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cta-title {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .cta-text {
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing-lg);
+            opacity: 0.9;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-btn {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--border-radius-xl);
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: var(--transition-normal);
+        }
+        
+        .cta-btn-primary {
+            background-color: var(--white);
+            color: var(--primary);
+        }
+        
+        .cta-btn-primary:hover {
+            background-color: var(--light);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .cta-btn-secondary {
+            background-color: transparent;
+            border: 2px solid var(--white);
+            color: var(--white);
+        }
+        
+        .cta-btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: var(--white);
+            padding: var(--spacing-xl) 5% var(--spacing-md);
+            margin-top: var(--spacing-xl);
+        }
+        
+        .footer-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xl);
+            justify-content: space-between;
+            max-width: var(--container-width);
+            margin: 0 auto;
+        }
+        
+        .footer-column {
+            flex: 1 1 250px;
+        }
+        
+        .footer-column h3 {
+            margin-bottom: var(--spacing-md);
+            font-size: 1.3rem;
+            color: var(--secondary);
+            position: relative;
+            display: inline-block;
+            padding-bottom: var(--spacing-xs);
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary);
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column li {
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .footer-column a {
+            text-decoration: none;
+            color: #ddd;
+            transition: var(--transition-normal);
+            display: inline-block;
+        }
+        
+        .footer-column a:hover {
+            color: var(--secondary);
+            transform: translateX(3px);
+        }
+        
+        .social-icons {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: #444;
+            border-radius: var(--border-radius-circle);
+            text-align: center;
+            transition: var(--transition-normal);
+            color: var(--white);
+            text-decoration: none;
+        }
+        
+        .social-icon:hover {
+            background-color: var(--primary);
+            transform: translateY(-3px);
+        }
+        
+        .footer-newsletter input {
+            padding: var(--spacing-sm);
+            width: 100%;
+            margin-bottom: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            border: none;
+            background-color: #444;
+            color: var(--white);
+        }
+        
+        .footer-newsletter input::placeholder {
+            color: #aaa;
+        }
+        
+        .footer-newsletter button {
+            width: 100%;
+        }
+        
+        .copyright {
+            text-align: center;
+            margin-top: var(--spacing-xl);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid #444;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+        
+        /* Modal per dettagli pizza */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-md);
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background-color: var(--white);
+            border-radius: var(--border-radius-lg);
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius-circle);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .modal-pizza {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .modal-pizza-image {
+            flex: 1 1 400px;
+            min-height: 300px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        .modal-pizza-info {
+            flex: 1 1 400px;
+            padding: var(--spacing-xl);
+        }
+        
+        .modal-pizza-title {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .modal-pizza-badge {
+            display: inline-block;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: var(--secondary);
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 0.8rem;
+            border-radius: var(--border-radius-xl);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .modal-pizza-description {
+            margin-bottom: var(--spacing-lg);
+            color: var(--gray-dark);
+            line-height: 1.8;
+        }
+        
+        .modal-pizza-ingredients {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .modal-pizza-ingredients h3 {
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing-sm);
+            color: var(--dark);
+        }
+        
+        .ingredients-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+        
+        .ingredient-item {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: var(--light);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.9rem;
+        }
+        
+        .modal-pizza-options {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .modal-pizza-options h3 {
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing-sm);
+            color: var(--dark);
+        }
+        
+        .options-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+        
+        .option-item {
+            padding: var(--spacing-sm);
+            border: 1px solid var(--gray);
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+        
+        .option-item:hover, .option-item.active {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+        
+        .modal-pizza-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+        
+        .modal-pizza-price {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--gray);
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+        }
+        
+        .quantity-btn {
+            width: 40px;
+            height: 40px;
+            background-color: var(--light);
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+        
+        .quantity-btn:hover {
+            background-color: var(--gray);
+        }
+        
+        .quantity-input {
+            width: 50px;
+            height: 40px;
+            border: none;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .add-to-cart-btn {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background-color: var(--primary);
+            color: var(--white);
+            border: none;
+            border-radius: var(--border-radius-xl);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            font-size: 1.1rem;
+            flex-grow: 1;
+        }
+        
+        .add-to-cart-btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-primary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .page-hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .pizza-name-large {
+                font-size: 2rem;
+            }
+            
+            .pizza-image-container {
+                height: 220px;
+            }
+            
+            .pizza-title {
+                font-size: 1.3rem;
+            }
+            
+            .cta-title {
+                font-size: 1.7rem;
+            }
+            
+            .cta-text {
+                font-size: 1rem;
+            }
+            
+            .menu-tabs {
+                flex-wrap: wrap;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .page-hero h1 {
+                font-size: 2rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .pizze-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: var(--spacing-lg);
+            }
+            
+            .pizza-image-container {
+                height: 250px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .page-hero h1 {
+                font-size: 1.7rem;
+            }
+            
+            .pizza-card {
+                max-width: 100%;
+            }
+            
+            .modal-pizza-info {
+                padding: var(--spacing-md);
+            }
+            
+            .modal-pizza-title {
+                font-size: 1.5rem;
+            }
+            
+            .modal-pizza-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .modal-close {
+                top: var(--spacing-sm);
+                right: var(--spacing-sm);
+            }
+            
+            .cta-btn {
+                width: 100%;
+                margin-bottom: var(--spacing-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header con Logo e Menu Principale -->
+    <header>
+        <div class="container header-container">
+            <div class="logo-contact-container">
+                <a href="index.html" class="logo">
+                    <div id="logo-container">
+                        <img src="img/logopizzeria.png" alt="PIZZIAMO Logo">
+                    </div>
+                </a>
+                <div class="contact-info">
+                    <div class="address">
+                        <i class="icon">📍</i>
+                        <span>Via Pontegradella 289/A, 44123 Ferrara (FE)</span>
+                    </div>
+                    <div class="phone">
+                        <i class="icon">📞</i>
+                        <span>Tel: 000000000</span>
+                    </div>
+                </div>
+            </div>
+            <nav class="main-nav">
+                <ul>
+                    <li><a href="chi-siamo.html"><i class="icon">👥</i> Chi siamo</a></li>
+                    <li><a href="menu.html" class="active"><i class="icon">🍕</i> Menù</a></li>
+                    <li><a href="#app"><i class="icon">📱</i> Scarica App</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    
+    <!-- Page Hero -->
+    <div class="page-hero">
+        <div class="container page-hero-content">
+            <h1>Il nostro Menù</h1>
+            <p>Scopri le nostre pizze realizzate con ingredienti freschi e di qualità</p>
+            <div class="breadcrumb">
+                <a href="index.html">Home</a>
+                <span>›</span>
+                <a href="menu.html">Menù</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Menu Content -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Scegli la tua Pizza Preferita</h2>
+            
+            <!-- Menu Tabs -->
+            <div class="menu-tabs">
+                <button class="menu-tab active" data-category="all">Tutte le Pizze</button>
+                <button class="menu-tab" data-category="classiche">Classiche</button>
+                <button class="menu-tab" data-category="speciali">Specialità</button>
+                <button class="menu-tab" data-category="limited">Limited Edition</button>
+                <button class="menu-tab" data-category="vegane">Vegane</button>
+                <button class="menu-tab" data-category="senza-glutine">Senza Glutine</button>
+            </div>
+            
+            <!-- Filtro Extra -->
+            <div class="menu-filter">
+                <button class="filter-btn active" data-filter="all">Tutte</button>
+                <button class="filter-btn" data-filter="new">Novità</button>
+                <button class="filter-btn" data-filter="bestseller">Best Seller</button>
+                <button class="filter-btn" data-filter="suggested">Consigliate</button>
+            </div>
+            
+            <!-- Tutte le Pizze -->
+            <div class="menu-category active" id="all">
+                <div class="pizze-grid">
+                    <!-- Pizza 1 - Margherita -->
+                    <div class="pizza-card" data-category="classiche">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza1.jpg" alt="Pizza Margherita" class="pizza-image">
+                            <span class="pizza-badge">Classica</span>
+                            <div class="pizza-name-overlay">
+                                <h3 class="pizza-title">Margherita</h3>
+                            </div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d'olio extravergine d'oliva.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 7.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="1">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pizza 2 - Diavola -->
+                    <div class="pizza-card" data-category="classiche">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza2.jpg" alt="Pizza Diavola" class="pizza-image">
+                            <span class="pizza-badge">Classica</span>
+                            <div class="pizza-name-overlay">
+                                <h3 class="pizza-title">Diavola</h3>
+                            </div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">Pomodoro San Marzano DOP, mozzarella fiordilatte e salame piccante. Per gli amanti del gusto deciso e leggermente piccante.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 8.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="2">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pizza 3 - Carbonara Revolution -->
+                    <div class="pizza-card" data-category="speciali">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza3.jpg" alt="Carbonara Revolution" class="pizza-image">
+                            <span class="pizza-badge">Specialità</span>
+                            <div class="pizza-name-large">Carbonara Revolution</div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">Con impasto Polesanissimo®, mozzarella, bacon, crema d'uovo, cipolla, scaglie di pecorino, pepe, olio EVO.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 12.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="3">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pizza 4 - Parma in Puglia -->
+                    <div class="pizza-card" data-category="limited">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza4.jpg" alt="Parma in Puglia" class="pizza-image">
+                            <span class="pizza-badge">Limited Edition</span>
+                            <img src="img/limited-edition.png" class="pizza-limited" alt="Limited Edition">
+                            <div class="pizza-name-large">Parma in Puglia</div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">Gli ingredienti pregiati sono confezionati a parte per garantire la miglior esperienza. Con impasto Polesanissimo®, pomodoro, mozzarella di bufala, crudo di Montagnana 24 mesi e burrata, basilico, olio Evo.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 14.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="4">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pizza 5 - Veg Garden -->
+                    <div class="pizza-card" data-category="vegane">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza5.jpg" alt="Veg Garden" class="pizza-image">
+                            <span class="pizza-badge">Vegana</span>
+                            <div class="pizza-name-overlay">
+                                <h3 class="pizza-title">Veg Garden</h3>
+                            </div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">Pomodoro San Marzano DOP, formaggio vegetale, zucchine, melanzane, peperoni, pomodorini e basilico fresco.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 10.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="5">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pizza 6 - Margherita Gluten Free -->
+                    <div class="pizza-card" data-category="senza-glutine">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza1.jpg" alt="Margherita Gluten Free" class="pizza-image">
+                            <span class="pizza-badge">Senza Glutine</span>
+                            <div class="pizza-name-overlay">
+                                <h3 class="pizza-title">Margherita Gluten Free</h3>
+                            </div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d'olio extravergine d'oliva, su base senza glutine.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 9.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="6">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Classiche -->
+            <div class="menu-category" id="classiche">
+                <div class="category-description">
+                    <p>Le nostre pizze classiche, realizzate secondo la tradizione italiana con ingredienti selezionati e di alta qualità.</p>
+                </div>
+                <div class="pizze-grid">
+                    <!-- Pizza 1 - Margherita -->
+                    <div class="pizza-card" data-category="classiche">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza1.jpg" alt="Pizza Margherita" class="pizza-image">
+                            <span class="pizza-badge">Classica</span>
+                            <div class="pizza-name-overlay">
+                                <h3 class="pizza-title">Margherita</h3>
+                            </div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d'olio extravergine d'oliva.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 7.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="1">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pizza 2 - Diavola -->
+                    <div class="pizza-card" data-category="classiche">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza2.jpg" alt="Pizza Diavola" class="pizza-image">
+                            <span class="pizza-badge">Classica</span>
+                            <div class="pizza-name-overlay">
+                                <h3 class="pizza-title">Diavola</h3>
+                            </div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">Pomodoro San Marzano DOP, mozzarella fiordilatte e salame piccante. Per gli amanti del gusto deciso e leggermente piccante.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 8.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="2">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Specialità -->
+            <div class="menu-category" id="speciali">
+                <div class="category-description">
+                    <p>Le nostre pizze speciali, creazioni uniche dello chef che combinano sapori tradizionali e innovativi.</p>
+                </div>
+                <div class="pizze-grid">
+                    <!-- Pizza 3 - Carbonara Revolution -->
+                    <div class="pizza-card" data-category="speciali">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza3.jpg" alt="Carbonara Revolution" class="pizza-image">
+                            <span class="pizza-badge">Specialità</span>
+                            <div class="pizza-name-large">Carbonara Revolution</div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">Con impasto Polesanissimo®, mozzarella, bacon, crema d'uovo, cipolla, scaglie di pecorino, pepe, olio EVO.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 12.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="3">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Limited Edition -->
+            <div class="menu-category" id="limited">
+                <div class="category-description">
+                    <p>Le nostre pizze in edizione limitata, disponibili solo per un periodo di tempo. Ingredienti stagionali e di altissima qualità.</p>
+                </div>
+                <div class="pizze-grid">
+                    <!-- Pizza 4 - Parma in Puglia -->
+                    <div class="pizza-card" data-category="limited">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza4.jpg" alt="Parma in Puglia" class="pizza-image">
+                            <span class="pizza-badge">Limited Edition</span>
+                            <img src="img/limited-edition.png" class="pizza-limited" alt="Limited Edition">
+                            <div class="pizza-name-large">Parma in Puglia</div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">Gli ingredienti pregiati sono confezionati a parte per garantire la miglior esperienza. Con impasto Polesanissimo®, pomodoro, mozzarella di bufala, crudo di Montagnana 24 mesi e burrata, basilico, olio Evo.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 14.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="4">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vegane -->
+            <div class="menu-category" id="vegane">
+                <div class="category-description">
+                    <p>Le nostre pizze 100% vegetali, senza ingredienti di origine animale ma con tutto il gusto delle pizze tradizionali.</p>
+                </div>
+                <div class="pizze-grid">
+                    <!-- Pizza 5 - Veg Garden -->
+                    <div class="pizza-card" data-category="vegane">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza5.jpg" alt="Veg Garden" class="pizza-image">
+                            <span class="pizza-badge">Vegana</span>
+                            <div class="pizza-name-overlay">
+                                <h3 class="pizza-title">Veg Garden</h3>
+                            </div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">Pomodoro San Marzano DOP, formaggio vegetale, zucchine, melanzane, peperoni, pomodorini e basilico fresco.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 10.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="5">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Senza Glutine -->
+            <div class="menu-category" id="senza-glutine">
+                <div class="category-description">
+                    <p>Le nostre pizze senza glutine, preparate in ambiente controllato con ingredienti certificati per chi soffre di intolleranze o celiachia.</p>
+                </div>
+                <div class="pizze-grid">
+                    <!-- Pizza 6 - Margherita Gluten Free -->
+                    <div class="pizza-card" data-category="senza-glutine">
+                        <div class="pizza-image-container">
+                            <img src="img/pizza1.jpg" alt="Margherita Gluten Free" class="pizza-image">
+                            <span class="pizza-badge">Senza Glutine</span>
+                            <div class="pizza-name-overlay">
+                                <h3 class="pizza-title">Margherita Gluten Free</h3>
+                            </div>
+                        </div>
+                        <div class="pizza-content">
+                            <p class="pizza-description">La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d'olio extravergine d'oliva, su base senza glutine.</p>
+                            <div class="pizza-footer">
+                                <div class="pizza-price">€ 9.50</div>
+                                <button class="btn btn-primary order-btn" data-pizza-id="6">Ordina</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Modal per dettagli pizza -->
+    <div class="modal" id="pizzaModal">
+        <div class="modal-content">
+            <button class="modal-close" id="closeModal">×</button>
+            <div class="modal-pizza">
+                <div class="modal-pizza-image" id="modalPizzaImage"></div>
+                <div class="modal-pizza-info">
+                    <h2 class="modal-pizza-title" id="modalPizzaTitle">Titolo Pizza</h2>
+                    <span class="modal-pizza-badge" id="modalPizzaBadge">Categoria</span>
+                    <p class="modal-pizza-description" id="modalPizzaDescription">Descrizione della pizza</p>
+                    
+                    <div class="modal-pizza-ingredients">
+                        <h3>Ingredienti</h3>
+                        <div class="ingredients-list" id="modalIngredientsList">
+                            <!-- Gli ingredienti verranno inseriti dinamicamente -->
+                        </div>
+                    </div>
+                    
+                    <div class="modal-pizza-options">
+                        <h3>Opzioni</h3>
+                        <div class="options-list">
+                            <div class="option-item active">Standard</div>
+                            <div class="option-item">Doppia Mozzarella (+€1.50)</div>
+                            <div class="option-item">Cornicione Ripieno (+€2.00)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-pizza-actions">
+                        <div class="modal-pizza-price" id="modalPizzaPrice">€ 0.00</div>
+                        <div class="quantity-selector">
+                            <button class="quantity-btn" id="decreaseQty">-</button>
+                            <input type="number" class="quantity-input" id="pizzaQuantity" value="1" min="1" max="10">
+                            <button class="quantity-btn" id="increaseQty">+</button>
+                        </div>
+                        <button class="add-to-cart-btn" id="addToCartBtn">Aggiungi al carrello</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2 class="cta-title">Vuoi un'esperienza ancora migliore?</h2>
+                <p class="cta-text">Scarica la nostra app per ordinare in modo più veloce, accumulare punti fedeltà e ricevere offerte esclusive.</p>
+                <div class="cta-buttons">
+                    <a href="https://apps.apple.com/it/app/pizziamo/id1441122313" target="_blank" class="cta-btn cta-btn-primary">App Store</a>
+                    <a href="https://play.google.com/store/apps/details?id=net.pizziamo.ordine" target="_blank" class="cta-btn cta-btn-secondary">Google Play</a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-column">
+                <h3>PIZZIAMO?!</h3>
+                <p>La pizza più buona della città, con ingredienti freschi e di qualità. Dal 2010 al vostro servizio.</p>
+                <div class="social-icons">
+                    <a href="#" class="social-icon">F</a>
+                    <a href="#" class="social-icon">I</a>
+                    <a href="#" class="social-icon">T</a>
+                </div>
+            </div>
+            <div class="footer-column">
+                <h3>Contatti</h3>
+                <ul>
+                    <li>Via Pontegradella 289/A, 44123 Ferrara (FE)</li>
+                    <li>Tel: 000000000</li>
+                    <li>Email: info@pizziamo.it</li>
+                    <li>Orari: 17:00-22:00</li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Link Utili</h3>
+                <ul>
+                    <li><a href="menu.html">Menu</a></li>
+                    <li><a href="chi-siamo.html">Chi siamo</a></li>
+                    <li><a href="#">Lavora con noi</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                </ul>
+            </div>
+            <div class="footer-column footer-newsletter">
+                <h3>Newsletter</h3>
+                <p>Iscriviti per ricevere offerte esclusive e novità.</p>
+                <form>
+                    <input type="email" placeholder="La tua email">
+                    <button type="submit" class="btn btn-primary">Iscriviti</button>
+                </form>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 PIZZIAMO?! Tutti i diritti riservati.</p>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dati pizze
+            const pizze = [
+                {
+                    id: 1,
+                    name: 'Margherita',
+                    category: 'classiche',
+                    price: 7.50,
+                    description: 'La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d\'olio extravergine d\'oliva.',
+                    ingredients: ['Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Basilico fresco', 'Olio EVO'],
+                    image: 'img/pizza1.jpg',
+                    badge: 'Classica'
+                },
+                {
+                    id: 2,
+                    name: 'Diavola',
+                    category: 'classiche',
+                    price: 8.50,
+                    description: 'Pomodoro San Marzano DOP, mozzarella fiordilatte e salame piccante. Per gli amanti del gusto deciso e leggermente piccante.',
+                    ingredients: ['Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Salame piccante'],
+                    image: 'img/pizza2.jpg',
+                    badge: 'Classica'
+                },
+                {
+                    id: 3,
+                    name: 'Carbonara Revolution',
+                    category: 'speciali',
+                    price: 12.50,
+                    description: 'Con impasto Polesanissimo®, mozzarella, bacon, crema d\'uovo, cipolla, scaglie di pecorino, pepe, olio EVO.',
+                    ingredients: ['Impasto Polesanissimo®', 'Mozzarella', 'Bacon', 'Crema d\'uovo', 'Cipolla', 'Pecorino', 'Pepe', 'Olio EVO'],
+                    image: 'img/pizza3.jpg',
+                    badge: 'Specialità'
+                },
+                {
+                    id: 4,
+                    name: 'Parma in Puglia',
+                    category: 'limited',
+                    price: 14.50,
+                    description: 'Gli ingredienti pregiati sono confezionati a parte per garantire la miglior esperienza. Con impasto Polesanissimo®, pomodoro, mozzarella di bufala, crudo di Montagnana 24 mesi e burrata, basilico, olio Evo.',
+                    ingredients: ['Impasto Polesanissimo®', 'Pomodoro', 'Mozzarella di bufala', 'Crudo di Montagnana 24 mesi', 'Burrata', 'Basilico', 'Olio EVO'],
+                    image: 'img/pizza4.jpg',
+                    badge: 'Limited Edition'
+                },
+                {
+                    id: 5,
+                    name: 'Veg Garden',
+                    category: 'vegane',
+                    price: 10.50,
+                    description: 'Pomodoro San Marzano DOP, formaggio vegetale, zucchine, melanzane, peperoni, pomodorini e basilico fresco.',
+                    ingredients: ['Pomodoro San Marzano DOP', 'Formaggio vegetale', 'Zucchine', 'Melanzane', 'Peperoni', 'Pomodorini', 'Basilico fresco'],
+                    image: 'img/pizza5.jpg',
+                    badge: 'Vegana'
+                },
+                {
+                    id: 6,
+                    name: 'Margherita Gluten Free',
+                    category: 'senza-glutine',
+                    price: 9.50,
+                    description: 'La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d\'olio extravergine d\'oliva, su base senza glutine.',
+                    ingredients: ['Base senza glutine', 'Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Basilico fresco', 'Olio EVO'],
+                    image: 'img/pizza1.jpg',
+                    badge: 'Senza Glutine'
+                }
+            ];
+            
+            // Menu Tabs
+            const menuTabs = document.querySelectorAll('.menu-tab');
+            const menuCategories = document.querySelectorAll('.menu-category');
+            
+            menuTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    
+                    // Rimuovi active da tutti i tab
+                    menuTabs.forEach(t => t.classList.remove('active'));
+                    // Aggiungi active al tab cliccato
+                    this.classList.add('active');
+                    
+                    // Nascondi tutte le categorie
+                    menuCategories.forEach(cat => cat.classList.remove('active'));
+                    
+                    // Mostra la categoria selezionata
+                    if (category === 'all') {
+                        document.getElementById('all').classList.add('active');
+                    } else {
+                        document.getElementById(category).classList.add('active');
+                    }
+                });
+            });
+            
+            // Filtri
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // Rimuovi active da tutti i bottoni
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    // Aggiungi active al bottone cliccato
+                    this.classList.add('active');
+                    
+                    // Implementazione reale filtrerebbe le pizze in base al filtro
+                    // Per questa demo, mostriamo solo un messaggio
+                    console.log('Filtro applicato:', filter);
+                });
+            });
+            
+            // Modal
+            const modal = document.getElementById('pizzaModal');
+            const closeModalBtn = document.getElementById('closeModal');
+            const orderButtons = document.querySelectorAll('.order-btn');
+            
+            orderButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const pizzaId = parseInt(this.getAttribute('data-pizza-id'));
+                    const pizza = pizze.find(p => p.id === pizzaId);
+                    
+                    if (pizza) {
+                        // Popola il modal con i dati della pizza
+                        document.getElementById('modalPizzaTitle').textContent = pizza.name;
+                        document.getElementById('modalPizzaBadge').textContent = pizza.badge;
+                        document.getElementById('modalPizzaDescription').textContent = pizza.description;
+                        document.getElementById('modalPizzaPrice').textContent = `€ ${pizza.price.toFixed(2)}`;
+                        document.getElementById('modalPizzaImage').style.backgroundImage = `url('${pizza.image}')`;
+                        
+                        // Popola ingredienti
+                        const ingredientsList = document.getElementById('modalIngredientsList');
+                        ingredientsList.innerHTML = '';
+                        pizza.ingredients.forEach(ingredient => {
+                            const ingItem = document.createElement('div');
+                            ingItem.className = 'ingredient-item';
+                            ingItem.textContent = ingredient;
+                            ingredientsList.appendChild(ingItem);
+                        });
+                        
+                        // Mostra il modal
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden'; // Impedisce lo scroll della pagina
+                    }
+                });
+            });
+            
+            // Chiudi il modal
+            closeModalBtn.addEventListener('click', function() {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto'; // Ripristina lo scroll
+            });
+            
+            // Chiudi il modal anche cliccando fuori
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+            
+            // Gestione quantità
+            const decreaseBtn = document.getElementById('decreaseQty');
+            const increaseBtn = document.getElementById('increaseQty');
+            const quantityInput = document.getElementById('pizzaQuantity');
+            
+            decreaseBtn.addEventListener('click', function() {
+                let qty = parseInt(quantityInput.value);
+                if (qty > 1) {
+                    quantityInput.value = qty - 1;
+                }
+            });
+            
+            increaseBtn.addEventListener('click', function() {
+                let qty = parseInt(quantityInput.value);
+                if (qty < 10) {
+                    quantityInput.value = qty + 1;
+                }
+            });
+            
+            // Opzioni pizza
+            const optionItems = document.querySelectorAll('.option-item');
+            
+            optionItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Rimuovi active da tutte le opzioni
+                    optionItems.forEach(opt => opt.classList.remove('active'));
+                    // Aggiungi active all'opzione cliccata
+                    this.classList.add('active');
+                });
+            });
+            
+            // Aggiungi al carrello
+            document.getElementById('addToCartBtn').addEventListener('click', function() {
+                const pizzaTitle = document.getElementById('modalPizzaTitle').textContent;
+                const quantity = document.getElementById('pizzaQuantity').value;
+                
+                alert(`${quantity}x ${pizzaTitle} aggiunta al carrello!`);
+                
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            });
+        });
+    </script>
+</body>
+</html>
