@@ -1,0 +1,3041 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pannello Admin - PIZZIAMO?!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reset e stili base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        /* Colori del brand */
+        :root {
+            --primary: #e50000;
+            --primary-dark: #c50000;
+            --primary-light: rgba(229, 0, 0, 0.1);
+            --secondary: #ffcd00;
+            --secondary-dark: #e6b800;
+            --secondary-light: rgba(255, 205, 0, 0.2);
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --white: #ffffff;
+            
+            --spacing-xs: 5px;
+            --spacing-sm: 10px;
+            --spacing-md: 15px;
+            --spacing-lg: 25px;
+            --spacing-xl: 40px;
+            
+            --shadow-sm: 0 .125rem .25rem rgba(0,0,0,.075);
+            --shadow-md: 0 .5rem 1rem rgba(0,0,0,.15);
+            --shadow-lg: 0 1rem 3rem rgba(0,0,0,.175);
+            
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            
+            --transition-normal: all 0.3s ease;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            padding: 0 15px;
+            margin: 0 auto;
+        }
+        
+        /* Header Admin */
+        .admin-header {
+            background-color: var(--white);
+            border-bottom: 1px solid #e5e5e5;
+            padding: var(--spacing-md) 0;
+            box-shadow: var(--shadow-sm);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        
+        .admin-header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            text-decoration: none;
+            color: var(--dark);
+        }
+        
+        .admin-logo img {
+            height: 40px;
+            width: auto;
+        }
+        
+        .admin-logo h1 {
+            font-size: 1.2rem;
+            margin: 0;
+        }
+        
+        .admin-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .admin-user {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .admin-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: bold;
+        }
+        
+        .admin-logout {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--white);
+            border: 1px solid var(--gray);
+            border-radius: var(--border-radius-sm);
+            color: var(--gray);
+            text-decoration: none;
+            transition: var(--transition-normal);
+        }
+        
+        .admin-logout:hover {
+            background-color: var(--gray);
+            color: var(--white);
+        }
+        
+        /* Sidebar */
+        .admin-sidebar {
+            width: 250px;
+            position: fixed;
+            top: 71px;
+            left: 0;
+            height: calc(100vh - 71px);
+            background-color: var(--white);
+            border-right: 1px solid #e5e5e5;
+            padding: var(--spacing-md);
+            overflow-y: auto;
+            transition: var(--transition-normal);
+        }
+        
+        .admin-sidebar.collapsed {
+            width: 60px;
+        }
+        
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .admin-menu {
+            list-style: none;
+            padding: var(--spacing-md) 0;
+        }
+        
+        .admin-menu-item {
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .admin-menu-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            text-decoration: none;
+            color: var(--dark);
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition-normal);
+        }
+        
+        .admin-menu-link:hover, .admin-menu-link.active {
+            background-color: var(--light);
+            color: var(--primary);
+        }
+        
+        .admin-menu-icon {
+            min-width: 24px;
+            text-align: center;
+        }
+        
+        .admin-menu-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .admin-sidebar.collapsed .admin-menu-text {
+            display: none;
+        }
+        
+        /* Main Content */
+        .admin-main {
+            margin-left: 250px;
+            margin-top: 71px;
+            padding: var(--spacing-lg);
+            transition: var(--transition-normal);
+        }
+        
+        .admin-main.expanded {
+            margin-left: 60px;
+        }
+        
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            color: var(--dark);
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition-normal);
+            border: none;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--dark);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: var(--white);
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: var(--white);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 0.9rem;
+        }
+        
+        /* Card */
+        .card {
+            background-color: var(--white);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .card-header {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid #e5e5e5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            color: var(--dark);
+            margin: 0;
+        }
+        
+        .card-body {
+            padding: var(--spacing-md);
+        }
+        
+        /* Tables */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .table th, .table td {
+            padding: var(--spacing-sm);
+            text-align: left;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .table th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .table tr:hover {
+            background-color: var(--light);
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+        
+        /* Form */
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            transition: border-color .15s ease-in-out;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: 0;
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M8 11.5L2.5 6h11L8 11.5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 16px;
+        }
+        
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -10px;
+            margin-left: -10px;
+        }
+        
+        .form-col {
+            flex-basis: 0;
+            flex-grow: 1;
+            max-width: 100%;
+            padding-right: 10px;
+            padding-left: 10px;
+        }
+        
+        .form-col-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+            padding-right: 10px;
+            padding-left: 10px;
+        }
+        
+        .form-text {
+            display: block;
+            margin-top: var(--spacing-xs);
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .form-check-input {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-lg);
+        }
+        
+        /* Images */
+        .img-thumbnail {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: var(--border-radius-sm);
+        }
+        
+        .preview-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-sm);
+        }
+        
+        .preview-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+            display: none;
+        }
+        
+        .modal-backdrop.show {
+            display: block;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1060;
+            display: none;
+            overflow-y: auto;
+        }
+        
+        .modal.show {
+            display: block;
+        }
+        
+        .modal-dialog {
+            position: relative;
+            width: auto;
+            margin: 50px auto;
+            max-width: 600px;
+            pointer-events: none;
+        }
+        
+        .modal-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--white);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-lg);
+            pointer-events: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md);
+            border-bottom: 1px solid #e5e5e5;
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: bold;
+            line-height: 1;
+            cursor: pointer;
+            opacity: .5;
+            transition: opacity .15s;
+        }
+        
+        .modal-close:hover {
+            opacity: 1;
+        }
+        
+        .modal-body {
+            padding: var(--spacing-md);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md);
+            border-top: 1px solid #e5e5e5;
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: var(--spacing-sm) var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 10px;
+        }
+        
+        .badge-success {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+        
+        .badge-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+        
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed #ced4da;
+            border-radius: var(--border-radius-md);
+            padding: var(--spacing-lg);
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+        
+        .dropzone:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+        
+        .dropzone-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .dropzone-icon {
+            font-size: 2rem;
+            color: var(--gray);
+        }
+        
+        .dropzone-text {
+            color: var(--gray);
+        }
+        
+        /* Tags Input */
+        .tags-input {
+            width: 100%;
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+            align-items: center;
+        }
+        
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--primary-light);
+            color: var(--primary);
+            padding: 0 8px;
+            border-radius: 12px;
+            gap: 5px;
+        }
+        
+        .tag-remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .tags-input input {
+            flex: 1;
+            min-width: 100px;
+            border: none;
+            outline: none;
+            padding: 5px 0;
+        }
+        
+        /* Search Box */
+        .search-box {
+            position: relative;
+            max-width: 300px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) var(--spacing-md);
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+        
+        /* Carosello Manager */
+        .carousel-manager {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .carousel-item {
+            border: 1px solid #e5e5e5;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .carousel-item img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .carousel-item-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: var(--spacing-sm);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .carousel-item-order {
+            color: white;
+            font-weight: bold;
+        }
+        
+        .carousel-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .add-carousel-item {
+            border: 2px dashed #ced4da;
+            border-radius: var(--border-radius-md);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 160px;
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+        
+        .add-carousel-item:hover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+        
+        .add-carousel-icon {
+            font-size: 2rem;
+            color: var(--gray);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        /* Values Manager */
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .value-card {
+            border: 1px solid #e5e5e5;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            position: relative;
+            padding: var(--spacing-md);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .value-icon {
+            font-size: 2rem;
+            margin-bottom: var(--spacing-sm);
+            color: var(--primary);
+            text-align: center;
+        }
+        
+        .value-title {
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing-sm);
+            color: var(--dark);
+            text-align: center;
+        }
+        
+        .value-description {
+            color: var(--gray-dark);
+            text-align: center;
+        }
+        
+        .value-actions {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        /* Gallery Manager */
+        .gallery-manager {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .gallery-item {
+            border: 1px solid #e5e5e5;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .gallery-item-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: var(--spacing-sm);
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .gallery-item-caption {
+            color: white;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70%;
+        }
+        
+        .gallery-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        /* Ingredients Manager */
+        .ingredients-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .ingredient-card {
+            border: 1px solid #e5e5e5;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .ingredient-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        
+        .ingredient-content {
+            padding: var(--spacing-md);
+        }
+        
+        .ingredient-title {
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing-xs);
+            color: var(--primary);
+        }
+        
+        .ingredient-description {
+            color: var(--gray-dark);
+            margin-bottom: var(--spacing-sm);
+            font-size: 0.9rem;
+        }
+        
+        .ingredient-badge {
+            display: inline-block;
+            background-color: var(--secondary-light);
+            color: var(--dark);
+            padding: 4px 8px;
+            border-radius: var(--border-radius-sm);
+            font-size: 0.8rem;
+        }
+        
+        .ingredient-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        /* Storia Editor */
+        .storia-editor {
+            display: flex;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+        
+        .storia-content {
+            flex: 1 1 500px;
+        }
+        
+        .storia-image-preview {
+            flex: 1 1 300px;
+            text-align: center;
+        }
+        
+        .storia-image-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-md);
+        }
+        
+        /* Editor WYSIWYG */
+        .wysiwyg-toolbar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            background-color: var(--light);
+            padding: 8px;
+            border-radius: var(--border-radius-sm);
+        }
+        
+        .wysiwyg-btn {
+            padding: 5px 10px;
+            background-color: var(--white);
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: var(--transition-normal);
+        }
+        
+        .wysiwyg-btn:hover {
+            background-color: var(--light);
+        }
+        
+        .wysiwyg-content {
+            border: 1px solid #ced4da;
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-md);
+            min-height: 300px;
+            background-color: var(--white);
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .admin-sidebar {
+                width: 70px;
+            }
+            
+            .admin-sidebar .admin-menu-text {
+                display: none;
+            }
+            
+            .admin-main {
+                margin-left: 70px;
+            }
+            
+            .admin-main.expanded {
+                margin-left: 70px;
+            }
+            
+            .sidebar-toggle {
+                display: none;
+            }
+            
+            .form-col-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .admin-header-container {
+                flex-direction: column;
+                gap: var(--spacing-sm);
+            }
+            
+            .admin-main {
+                margin-top: 120px;
+                padding: var(--spacing-md);
+            }
+            
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-sm);
+            }
+            
+            .modal-dialog {
+                margin: 20px auto;
+                max-width: calc(100% - 40px);
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-sm);
+            }
+            
+            .admin-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Admin -->
+    <header class="admin-header">
+        <div class="container admin-header-container">
+            <a href="admin.html" class="admin-logo">
+                <img src="img/logopizzeria.png" alt="PIZZIAMO Logo">
+                <h1>Admin Panel</h1>
+            </a>
+            <div class="admin-actions">
+                <div class="admin-user">
+                    <div class="admin-user-avatar">A</div>
+                    <span>Admin</span>
+                </div>
+                <a href="index.html" class="admin-logout">Esci</a>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+        <button class="sidebar-toggle" id="toggleSidebar">☰</button>
+        <ul class="admin-menu">
+            <li class="admin-menu-item">
+                <a href="#" class="admin-menu-link active" data-section="pizze-section">
+                    <span class="admin-menu-icon">🍕</span>
+                    <span class="admin-menu-text">Pizze</span>
+                </a>
+            </li>
+            <li class="admin-menu-item">
+                <a href="#" class="admin-menu-link" data-section="carousel-section">
+                    <span class="admin-menu-icon">🖼️</span>
+                    <span class="admin-menu-text">Carosello Home</span>
+                </a>
+            </li>
+            <li class="admin-menu-item">
+                <a href="#" class="admin-menu-link" data-section="storia-section">
+                    <span class="admin-menu-icon">📖</span>
+                    <span class="admin-menu-text">La Nostra Storia</span>
+                </a>
+            </li>
+            <li class="admin-menu-item">
+                <a href="#" class="admin-menu-link" data-section="valori-section">
+                    <span class="admin-menu-icon">🌱</span>
+                    <span class="admin-menu-text">I Nostri Valori</span>
+                </a>
+            </li>
+            <li class="admin-menu-item">
+                <a href="#" class="admin-menu-link" data-section="ingredienti-section">
+                    <span class="admin-menu-icon">🍅</span>
+                    <span class="admin-menu-text">I Nostri Ingredienti</span>
+                </a>
+            </li>
+            <li class="admin-menu-item">
+                <a href="#" class="admin-menu-link" data-section="locale-section">
+                    <span class="admin-menu-icon">🏠</span>
+                    <span class="admin-menu-text">Il Nostro Locale</span>
+                </a>
+            </li>
+        </ul>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="admin-main" id="adminMain">
+        <!-- Sezione Pizze -->
+        <section id="pizze-section" class="content-section">
+            <div class="page-header">
+                <h1 class="page-title">Gestione Pizze</h1>
+                <button class="btn btn-primary" id="addPizzaBtn">
+                    <span>+</span> Aggiungi Pizza
+                </button>
+            </div>
+            
+            <!-- Alert Success -->
+            <div class="alert alert-success" id="successAlert" style="display: none;">
+                <span>✓</span>
+                <span id="successMessage">Operazione completata con successo!</span>
+            </div>
+            
+            <!-- Pizze Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Elenco Pizze</h2>
+                    <div class="search-box">
+                        <input type="text" class="search-input" placeholder="Cerca pizza..." id="searchPizza">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table" id="pizzaTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px;">Immagine</th>
+                                    <th>Nome</th>
+                                    <th>Categoria</th>
+                                    <th>Prezzo</th>
+                                    <th>Stato</th>
+                                    <th style="width: 120px;">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pizzaTableBody">
+                                <!-- I dati verranno caricati dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sezione Carosello -->
+        <section id="carousel-section" class="content-section" style="display: none;">
+            <div class="page-header">
+                <h1 class="page-title">Gestione Carosello Home</h1>
+                <button class="btn btn-primary" id="addCarouselBtn">
+                    <span>+</span> Aggiungi Immagine
+                </button>
+            </div>
+            
+            <!-- Alert Success -->
+            <div class="alert alert-success" id="carouselSuccessAlert" style="display: none;">
+                <span>✓</span>
+                <span id="carouselSuccessMessage">Operazione completata con successo!</span>
+            </div>
+            
+            <!-- Carosello Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Immagini Carosello</h2>
+                    <div>
+                        <button class="btn btn-secondary" id="saveOrderBtn">Salva Ordine</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom: 20px;">Trascina le immagini per riordinare. Le immagini appaiono nel carosello nella homepage del sito.</p>
+                    <div class="carousel-manager" id="carouselContainer">
+                        <!-- Gli elementi del carosello verranno caricati dinamicamente -->
+                        <div class="carousel-item">
+                            <img src="img/pizza1.jpg" alt="Slide 1">
+                            <div class="carousel-item-overlay">
+                                <div class="carousel-item-order">1</div>
+                                <div class="carousel-item-actions">
+                                    <button class="btn btn-sm btn-secondary edit-carousel-btn">📝</button>
+                                    <button class="btn btn-sm btn-danger delete-carousel-btn">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="img/pizza3.jpg" alt="Slide 2">
+                            <div class="carousel-item-overlay">
+                                <div class="carousel-item-order">2</div>
+                                <div class="carousel-item-actions">
+                                    <button class="btn btn-sm btn-secondary edit-carousel-btn">📝</button>
+                                    <button class="btn btn-sm btn-danger delete-carousel-btn">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="img/pizza4.jpg" alt="Slide 3">
+                            <div class="carousel-item-overlay">
+                                <div class="carousel-item-order">3</div>
+                                <div class="carousel-item-actions">
+                                    <button class="btn btn-sm btn-secondary edit-carousel-btn">📝</button>
+                                    <button class="btn btn-sm btn-danger delete-carousel-btn">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="img/pizza5.jpg" alt="Slide 4">
+                            <div class="carousel-item-overlay">
+                                <div class="carousel-item-order">4</div>
+                                <div class="carousel-item-actions">
+                                    <button class="btn btn-sm btn-secondary edit-carousel-btn">📝</button>
+                                    <button class="btn btn-sm btn-danger delete-carousel-btn">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="carousel-item">
+                            <img src="img/pizza.jpg" alt="Slide 5">
+                            <div class="carousel-item-overlay">
+                                <div class="carousel-item-order">5</div>
+                                <div class="carousel-item-actions">
+                                    <button class="btn btn-sm btn-secondary edit-carousel-btn">📝</button>
+                                    <button class="btn btn-sm btn-danger delete-carousel-btn">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sezione La Nostra Storia -->
+        <section id="storia-section" class="content-section" style="display: none;">
+            <div class="page-header">
+                <h1 class="page-title">Gestione La Nostra Storia</h1>
+                <button class="btn btn-primary" id="saveStoria">
+                    <span>💾</span> Salva Modifiche
+                </button>
+            </div>
+            
+            <!-- Alert Success -->
+            <div class="alert alert-success" id="storiaSuccessAlert" style="display: none;">
+                <span>✓</span>
+                <span id="storiaSuccessMessage">Modifiche salvate con successo!</span>
+            </div>
+            
+            <!-- Storia Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Come è iniziato tutto</h2>
+                </div>
+                <div class="card-body">
+                    <div class="storia-editor">
+                        <div class="storia-content">
+                            <div class="form-group">
+                                <label class="form-label">Titolo Sezione</label>
+                                <input type="text" class="form-control" id="storiaTitolo" value="La Nostra Storia">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Sottotitolo</label>
+                                <input type="text" class="form-control" id="storiaSubtitle" value="Come è iniziato tutto">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Contenuto</label>
+                                <div class="wysiwyg-toolbar">
+                                    <button type="button" class="wysiwyg-btn bold-btn">B</button>
+                                    <button type="button" class="wysiwyg-btn italic-btn">I</button>
+                                    <button type="button" class="wysiwyg-btn underline-btn">U</button>
+                                    <button type="button" class="wysiwyg-btn paragraph-btn">P</button>
+                                </div>
+                                <div class="wysiwyg-content" id="storiaContent" contenteditable="true">
+                                    <p>La storia di PIZZIAMO?! inizia nel 2010, quando il nostro fondatore Marco, dopo anni di esperienza nelle migliori pizzerie italiane, decide di aprire la sua attività a Ferrara con una missione chiara: offrire pizze di altissima qualità con ingredienti freschi e a km zero.</p>
+                                    <p>Quello che è iniziato come un piccolo locale con pochi tavoli è diventato negli anni un punto di riferimento per gli amanti della pizza in città, grazie alla costante ricerca della perfezione e all'amore per la tradizione culinaria italiana.</p>
+                                    <p>Nel corso degli anni abbiamo ampliato il locale, migliorato continuamente le nostre ricette e creato un team di professionisti appassionati che condividono la nostra filosofia: la pizza non è solo cibo, è un'esperienza.</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Anno (badge)</label>
+                                <input type="text" class="form-control" id="storiaAnno" value="2010">
+                            </div>
+                        </div>
+                        <div class="storia-image-preview">
+                            <div class="form-group">
+                                <label class="form-label">Immagine</label>
+                                <div class="dropzone" id="storiaImageDropzone">
+                                    <div class="dropzone-content">
+                                        <div class="dropzone-icon">📁</div>
+                                        <div class="dropzone-text">Trascina un'immagine qui o clicca per selezionare</div>
+                                    </div>
+                                    <input type="file" id="storiaImage" style="display: none;" accept="image/*">
+                                </div>
+                            </div>
+                            <div class="preview-container" style="margin-top: 20px;">
+                                <img src="img/pizza1.jpg" alt="Storia Preview" id="storiaImagePreview">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sezione I Nostri Valori -->
+        <section id="valori-section" class="content-section" style="display: none;">
+            <div class="page-header">
+                <h1 class="page-title">Gestione I Nostri Valori</h1>
+                <button class="btn btn-primary" id="addValoreBtn">
+                    <span>+</span> Aggiungi Valore
+                </button>
+            </div>
+            
+            <!-- Alert Success -->
+            <div class="alert alert-success" id="valoriSuccessAlert" style="display: none;">
+                <span>✓</span>
+                <span id="valoriSuccessMessage">Operazione completata con successo!</span>
+            </div>
+            
+            <!-- Valori Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Elenco Valori</h2>
+                    <button class="btn btn-secondary" id="saveValoriOrderBtn">Salva Ordine</button>
+                </div>
+                <div class="card-body">
+                    <div class="values-grid" id="valoriContainer">
+                        <!-- I valori verranno caricati dinamicamente -->
+                        <div class="value-card">
+                            <div class="value-icon">🌱</div>
+                            <h3 class="value-title">Qualità e Freschezza</h3>
+                            <p class="value-description">Utilizziamo solo ingredienti freschi e di alta qualità, selezionati con cura dai migliori produttori locali. Ogni pizza che serviamo riflette il nostro impegno per l'eccellenza.</p>
+                            <div class="value-actions">
+                                <button class="btn btn-sm btn-secondary edit-valore-btn">Modifica</button>
+                                <button class="btn btn-sm btn-danger delete-valore-btn">Elimina</button>
+                            </div>
+                        </div>
+                        <div class="value-card">
+                            <div class="value-icon">🌍</div>
+                            <h3 class="value-title">Sostenibilità</h3>
+                            <p class="value-description">Ci impegniamo a ridurre il nostro impatto ambientale utilizzando materiali compostabili per il delivery, riducendo gli sprechi e sostenendo l'agricoltura locale.</p>
+                            <div class="value-actions">
+                                <button class="btn btn-sm btn-secondary edit-valore-btn">Modifica</button>
+                                <button class="btn btn-sm btn-danger delete-valore-btn">Elimina</button>
+                            </div>
+                        </div>
+                        <div class="value-card">
+                            <div class="value-icon">👨‍👩‍👧‍👦</div>
+                            <h3 class="value-title">Comunità</h3>
+                            <p class="value-description">Crediamo nell'importanza di costruire relazioni forti con la nostra comunità. Supportiamo eventi locali e collaboriamo con altre attività del territorio.</p>
+                            <div class="value-actions">
+                                <button class="btn btn-sm btn-secondary edit-valore-btn">Modifica</button>
+                                <button class="btn btn-sm btn-danger delete-valore-btn">Elimina</button>
+                            </div>
+                        </div>
+                        <div class="value-card">
+                            <div class="value-icon">🔄</div>
+                            <h3 class="value-title">Innovazione nella Tradizione</h3>
+                            <p class="value-description">Rispettiamo la tradizione pizzaiola italiana mentre cerchiamo costantemente modi innovativi per migliorare le nostre ricette e i nostri processi.</p>
+                            <div class="value-actions">
+                                <button class="btn btn-sm btn-secondary edit-valore-btn">Modifica</button>
+                                <button class="btn btn-sm btn-danger delete-valore-btn">Elimina</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sezione I Nostri Ingredienti -->
+        <section id="ingredienti-section" class="content-section" style="display: none;">
+            <div class="page-header">
+                <h1 class="page-title">Gestione I Nostri Ingredienti</h1>
+                <button class="btn btn-primary" id="addIngredienteBtn">
+                    <span>+</span> Aggiungi Ingrediente
+                </button>
+            </div>
+            
+            <!-- Alert Success -->
+            <div class="alert alert-success" id="ingredientiSuccessAlert" style="display: none;">
+                <span>✓</span>
+                <span id="ingredientiSuccessMessage">Operazione completata con successo!</span>
+            </div>
+            
+            <!-- Introduzione Ingredienti -->
+            <div class="card" style="margin-bottom: 30px;">
+                <div class="card-header">
+                    <h2 class="card-title">Testo Introduttivo</h2>
+                    <button class="btn btn-secondary" id="saveIngredientiIntroBtn">Salva</button>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Titolo Sezione</label>
+                        <input type="text" class="form-control" id="ingredientiTitolo" value="I Nostri Ingredienti">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Introduzione</label>
+                        <textarea class="form-control" id="ingredientiIntro" rows="3">La qualità dei nostri ingredienti è il segreto del nostro successo. Collaboriamo con produttori locali che condividono la nostra passione per il cibo eccellente e sostenibile. Ogni ingrediente è selezionato con cura per garantire pizze dal sapore autentico e inconfondibile.</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ingredienti Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Elenco Ingredienti</h2>
+                </div>
+                <div class="card-body">
+                    <div class="ingredients-grid" id="ingredientiContainer">
+                        <!-- Gli ingredienti verranno caricati dinamicamente -->
+                        <div class="ingredient-card">
+                            <img src="img/pomodoro.jpg" alt="Pomodori San Marzano" class="ingredient-img">
+                            <div class="ingredient-content">
+                                <h3 class="ingredient-title">Pomodori San Marzano DOP</h3>
+                                <p class="ingredient-description">Coltivati nelle fertile terre campane, i nostri pomodori San Marzano sono dolci, poco acidi e con pochi semi.</p>
+                                <span class="ingredient-badge">Campania</span>
+                                <div class="ingredient-actions">
+                                    <button class="btn btn-sm btn-secondary edit-ingrediente-btn">Modifica</button>
+                                    <button class="btn btn-sm btn-danger delete-ingrediente-btn">Elimina</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ingredient-card">
+                            <img src="img/mozzarella.jpg" alt="Mozzarella di Bufala" class="ingredient-img">
+                            <div class="ingredient-content">
+                                <h3 class="ingredient-title">Mozzarella di Bufala</h3>
+                                <p class="ingredient-description">Fresca e filante, la nostra mozzarella di bufala campana DOP è consegnata settimanalmente per garantire massima freschezza.</p>
+                                <span class="ingredient-badge">DOP</span>
+                                <div class="ingredient-actions">
+                                    <button class="btn btn-sm btn-secondary edit-ingrediente-btn">Modifica</button>
+                                    <button class="btn btn-sm btn-danger delete-ingrediente-btn">Elimina</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ingredient-card">
+                            <img src="img/farina.jpg" alt="Farina per l'impasto" class="ingredient-img">
+                            <div class="ingredient-content">
+                                <h3 class="ingredient-title">Farina Speciale</h3>
+                                <p class="ingredient-description">Il nostro impasto speciale è creato con un mix di farine selezionate che garantiscono leggerezza e digeribilità.</p>
+                                <span class="ingredient-badge">Esclusiva</span>
+                                <div class="ingredient-actions">
+                                    <button class="btn btn-sm btn-secondary edit-ingrediente-btn">Modifica</button>
+                                    <button class="btn btn-sm btn-danger delete-ingrediente-btn">Elimina</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ingredient-card">
+                            <img src="img/olio.jpg" alt="Olio Extra Vergine" class="ingredient-img">
+                            <div class="ingredient-content">
+                                <h3 class="ingredient-title">Olio Extra Vergine d'Oliva</h3>
+                                <p class="ingredient-description">Il nostro olio EVO è spremuto a freddo da olive italiane, conferendo alle pizze un aroma unico e inconfondibile.</p>
+                                <span class="ingredient-badge">Bio</span>
+                                <div class="ingredient-actions">
+                                    <button class="btn btn-sm btn-secondary edit-ingrediente-btn">Modifica</button>
+                                    <button class="btn btn-sm btn-danger delete-ingrediente-btn">Elimina</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sezione Il Nostro Locale -->
+        <section id="locale-section" class="content-section" style="display: none;">
+            <div class="page-header">
+                <h1 class="page-title">Gestione Il Nostro Locale</h1>
+                <button class="btn btn-primary" id="addLocaleImageBtn">
+                    <span>+</span> Aggiungi Immagine
+                </button>
+            </div>
+            
+            <!-- Alert Success -->
+            <div class="alert alert-success" id="localeSuccessAlert" style="display: none;">
+                <span>✓</span>
+                <span id="localeSuccessMessage">Operazione completata con successo!</span>
+            </div>
+            
+            <!-- Introduzione Locale -->
+            <div class="card" style="margin-bottom: 30px;">
+                <div class="card-header">
+                    <h2 class="card-title">Testo Introduttivo</h2>
+                    <button class="btn btn-secondary" id="saveLocaleIntroBtn">Salva</button>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Titolo Sezione</label>
+                        <input type="text" class="form-control" id="localeTitolo" value="Il Nostro Locale">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Introduzione</label>
+                        <textarea class="form-control" id="localeIntro" rows="3">Il nostro locale è stato progettato per offrirti un ambiente accogliente dove gustare le nostre specialità. Un mix di design moderno e atmosfera familiare che ti farà sentire subito a tuo agio.</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Galleria Locale -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Galleria Foto</h2>
+                    <button class="btn btn-secondary" id="saveGalleryOrderBtn">Salva Ordine</button>
+                </div>
+                <div class="card-body">
+                    <div class="gallery-manager" id="galleryContainer">
+                        <!-- Le immagini verranno caricate dinamicamente -->
+                        <div class="gallery-item">
+                            <img src="img/locale1.jpg" alt="Esterno del locale">
+                            <div class="gallery-item-overlay">
+                                <div class="gallery-item-caption">L'esterno del nostro locale</div>
+                                <div class="gallery-item-actions">
+                                    <button class="btn btn-sm btn-secondary edit-gallery-btn">📝</button>
+                                    <button class="btn btn-sm btn-danger delete-gallery-btn">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gallery-item">
+                            <img src="img/locale2.jpg" alt="Area principale">
+                            <div class="gallery-item-overlay">
+                                <div class="gallery-item-caption">La sala principale</div>
+                                <div class="gallery-item-actions">
+                                    <button class="btn btn-sm btn-secondary edit-gallery-btn">📝</button>
+                                    <button class="btn btn-sm btn-danger delete-gallery-btn">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gallery-item">
+                            <img src="img/locale3.jpg" alt="Forno a legna">
+                            <div class="gallery-item-overlay">
+                                <div class="gallery-item-caption">Il nostro forno a legna</div>
+                                <div class="gallery-item-actions">
+                                    <button class="btn btn-sm btn-secondary edit-gallery-btn">📝</button>
+                                    <button class="btn btn-sm btn-danger delete-gallery-btn">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="gallery-item">
+                            <img src="img/locale4.jpg" alt="Dettaglio tavolo">
+                            <div class="gallery-item-overlay">
+                                <div class="gallery-item-caption">I nostri tavoli</div>
+                                <div class="gallery-item-actions">
+                                    <button class="btn btn-sm btn-secondary edit-gallery-btn">📝</button>
+                                    <button class="btn btn-sm btn-danger delete-gallery-btn">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Add/Edit Pizza Modal -->
+    <div class="modal" id="pizzaModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="modalTitle">Aggiungi Pizza</h3>
+                    <button type="button" class="modal-close" id="closeModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="pizzaForm">
+                        <input type="hidden" id="pizzaId">
+                        
+                        <div class="form-group">
+                            <label for="pizzaName" class="form-label">Nome Pizza*</label>
+                            <input type="text" class="form-control" id="pizzaName" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-col-6">
+                                <div class="form-group">
+                                    <label for="pizzaPrice" class="form-label">Prezzo (€)*</label>
+                                    <input type="number" class="form-control" id="pizzaPrice" min="0" step="0.50" required>
+                                </div>
+                            </div>
+                            <div class="form-col-6">
+                                <div class="form-group">
+                                    <label for="pizzaCategory" class="form-label">Categoria*</label>
+                                    <select class="form-select" id="pizzaCategory" required>
+                                        <option value="">Seleziona categoria</option>
+                                        <option value="classiche">Classiche</option>
+                                        <option value="speciali">Specialità</option>
+                                        <option value="limited">Limited Edition</option>
+                                        <option value="vegane">Vegane</option>
+                                        <option value="senza-glutine">Senza Glutine</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="pizzaDescription" class="form-label">Descrizione*</label>
+                            <textarea class="form-control" id="pizzaDescription" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Ingredienti*</label>
+                            <div class="tags-input" id="pizzaIngredients">
+                                <input type="text" placeholder="Aggiungi ingrediente e premi Enter" id="ingredientInput">
+                            </div>
+                            <small class="form-text">Premi Enter dopo ogni ingrediente per aggiungerlo alla lista</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Immagine*</label>
+                            <div class="dropzone" id="pizzaImageDropzone">
+                                <div class="dropzone-content">
+                                    <div class="dropzone-icon">📁</div>
+                                    <div class="dropzone-text">Trascina un'immagine qui o clicca per selezionare</div>
+                                </div>
+                                <input type="file" id="pizzaImage" style="display: none;" accept="image/*">
+                            </div>
+                            <div class="preview-container" id="imagePreview" style="display: none;">
+                                <img src="" alt="Preview" class="preview-image" id="previewImage">
+                                <button type="button" class="btn btn-sm btn-danger" id="removeImage">Rimuovi</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-col-6">
+                                <div class="form-group">
+                                    <label for="pizzaBadge" class="form-label">Badge (opzionale)</label>
+                                    <input type="text" class="form-control" id="pizzaBadge" placeholder="es. Novità, Consigliata">
+                                </div>
+                            </div>
+                            <div class="form-col-6">
+                                <div class="form-group">
+                                    <label for="pizzaStatus" class="form-label">Stato</label>
+                                    <select class="form-select" id="pizzaStatus">
+                                        <option value="1">Attiva</option>
+                                        <option value="0">Disattiva</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="pizzaFeatured">
+                                <label class="form-check-label" for="pizzaFeatured">In evidenza</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="pizzaLargeTitle">
+                                <label class="form-check-label" for="pizzaLargeTitle">Usa titolo grande</label>
+                            </div>
+                            <small class="form-text">Attiva questa opzione per le pizze speciali con il nome sovraimpresso all'immagine.</small>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-secondary" id="cancelBtn">Annulla</button>
+                            <button type="submit" class="btn btn-primary" id="saveBtn">Salva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="deleteModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Conferma eliminazione</h3>
+                    <button type="button" class="modal-close" id="closeDeleteModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>Sei sicuro di voler eliminare la pizza <strong id="deletePizzaName"></strong>?</p>
+                    <p>Questa operazione non può essere annullata.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Annulla</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Elimina</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Carousel Image Modal -->
+    <div class="modal" id="carouselModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="carouselModalTitle">Aggiungi Immagine Carosello</h3>
+                    <button type="button" class="modal-close" id="closeCarouselModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="carouselForm">
+                        <input type="hidden" id="carouselItemId">
+                        
+                        <div class="form-group">
+                            <label for="carouselAlt" class="form-label">Titolo/Descrizione*</label>
+                            <input type="text" class="form-control" id="carouselAlt" required>
+                            <small class="form-text">Questo testo verrà mostrato quando l'immagine non può essere caricata e aiuta l'accessibilità.</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Immagine*</label>
+                            <div class="dropzone" id="carouselImageDropzone">
+                                <div class="dropzone-content">
+                                    <div class="dropzone-icon">📁</div>
+                                    <div class="dropzone-text">Trascina un'immagine qui o clicca per selezionare</div>
+                                </div>
+                                <input type="file" id="carouselImage" style="display: none;" accept="image/*">
+                            </div>
+                            <div class="preview-container" id="carouselImagePreview" style="display: none;">
+                                <img src="" alt="Preview" class="preview-image" id="carouselPreviewImage">
+                                <button type="button" class="btn btn-sm btn-danger" id="removeCarouselImage">Rimuovi</button>
+                            </div>
+                            <small class="form-text">Dimensione consigliata: 1200x450 pixel</small>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-secondary" id="cancelCarouselBtn">Annulla</button>
+                            <button type="submit" class="btn btn-primary" id="saveCarouselBtn">Salva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Valore Modal -->
+    <div class="modal" id="valoreModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="valoreModalTitle">Aggiungi Valore</h3>
+                    <button type="button" class="modal-close" id="closeValoreModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="valoreForm">
+                        <input type="hidden" id="valoreId">
+                        
+                        <div class="form-group">
+                            <label for="valoreIcon" class="form-label">Icona*</label>
+                            <input type="text" class="form-control" id="valoreIcon" required placeholder="Es: 🌱, 🌍, 👨‍👩‍👧‍👦, 🔄">
+                            <small class="form-text">Inserisci un'emoji come icona del valore</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="valoreTitolo" class="form-label">Titolo*</label>
+                            <input type="text" class="form-control" id="valoreTitolo" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="valoreDescrizione" class="form-label">Descrizione*</label>
+                            <textarea class="form-control" id="valoreDescrizione" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-secondary" id="cancelValoreBtn">Annulla</button>
+                            <button type="submit" class="btn btn-primary" id="saveValoreBtn">Salva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ingrediente Modal -->
+    <div class="modal" id="ingredienteModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="ingredienteModalTitle">Aggiungi Ingrediente</h3>
+                    <button type="button" class="modal-close" id="closeIngredienteModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="ingredienteForm">
+                        <input type="hidden" id="ingredienteId">
+                        
+                        <div class="form-group">
+                            <label for="ingredienteTitolo" class="form-label">Nome Ingrediente*</label>
+                            <input type="text" class="form-control" id="ingredienteTitolo" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ingredienteDescrizione" class="form-label">Descrizione*</label>
+                            <textarea class="form-control" id="ingredienteDescrizione" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ingredienteBadge" class="form-label">Badge (origine, certificazione)*</label>
+                            <input type="text" class="form-control" id="ingredienteBadge" required placeholder="Es: DOP, Bio, Campania">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Immagine*</label>
+                            <div class="dropzone" id="ingredienteImageDropzone">
+                                <div class="dropzone-content">
+                                    <div class="dropzone-icon">📁</div>
+                                    <div class="dropzone-text">Trascina un'immagine qui o clicca per selezionare</div>
+                                </div>
+                                <input type="file" id="ingredienteImage" style="display: none;" accept="image/*">
+                            </div>
+                            <div class="preview-container" id="ingredienteImagePreview" style="display: none;">
+                                <img src="" alt="Preview" class="preview-image" id="ingredientePreviewImage">
+                                <button type="button" class="btn btn-sm btn-danger" id="removeIngredienteImage">Rimuovi</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-secondary" id="cancelIngredienteBtn">Annulla</button>
+                            <button type="submit" class="btn btn-primary" id="saveIngredienteBtn">Salva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Gallery Image Modal -->
+    <div class="modal" id="galleryModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="galleryModalTitle">Aggiungi Immagine Galleria</h3>
+                    <button type="button" class="modal-close" id="closeGalleryModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="galleryForm">
+                        <input type="hidden" id="galleryItemId">
+                        
+                        <div class="form-group">
+                            <label for="galleryCaption" class="form-label">Didascalia*</label>
+                            <input type="text" class="form-control" id="galleryCaption" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="galleryAlt" class="form-label">Testo alternativo*</label>
+                            <input type="text" class="form-control" id="galleryAlt" required>
+                            <small class="form-text">Questo testo viene utilizzato per l'accessibilità</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Immagine*</label>
+                            <div class="dropzone" id="galleryImageDropzone">
+                                <div class="dropzone-content">
+                                    <div class="dropzone-icon">📁</div>
+                                    <div class="dropzone-text">Trascina un'immagine qui o clicca per selezionare</div>
+                                </div>
+                                <input type="file" id="galleryImage" style="display: none;" accept="image/*">
+                            </div>
+                            <div class="preview-container" id="galleryImagePreview" style="display: none;">
+                                <img src="" alt="Preview" class="preview-image" id="galleryPreviewImage">
+                                <button type="button" class="btn btn-sm btn-danger" id="removeGalleryImage">Rimuovi</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-secondary" id="cancelGalleryBtn">Annulla</button>
+                            <button type="submit" class="btn btn-primary" id="saveGalleryBtn">Salva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Backdrop -->
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle Sidebar
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.querySelector('.admin-sidebar');
+            const mainContent = document.getElementById('adminMain');
+            
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+            });
+            
+            // Navigation menu
+            const navLinks = document.querySelectorAll('.admin-menu-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    // Add active class to clicked link
+                    this.classList.add('active');
+                    
+                    // Hide all sections
+                    contentSections.forEach(section => section.style.display = 'none');
+                    
+                    // Show selected section
+                    const targetSection = this.getAttribute('data-section');
+                    document.getElementById(targetSection).style.display = 'block';
+                });
+            });
+            
+            // Pizze esempio (in un'implementazione reale verrebbero dal database)
+            const pizze = [
+                {
+                    id: 1,
+                    name: 'Margherita',
+                    category: 'classiche',
+                    price: 7.50,
+                    description: 'La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d\'olio extravergine d\'oliva.',
+                    ingredients: ['Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Basilico fresco', 'Olio EVO'],
+                    image: 'img/pizza1.jpg',
+                    badge: 'Classica',
+                    status: 1,
+                    featured: true,
+                    largeTitle: false
+                },
+                {
+                    id: 2,
+                    name: 'Diavola',
+                    category: 'classiche',
+                    price: 8.50,
+                    description: 'Pomodoro San Marzano DOP, mozzarella fiordilatte e salame piccante. Per gli amanti del gusto deciso e leggermente piccante.',
+                    ingredients: ['Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Salame piccante'],
+                    image: 'img/pizza2.jpg',
+                    badge: 'Classica',
+                    status: 1,
+                    featured: false,
+                    largeTitle: false
+                },
+                {
+                    id: 3,
+                    name: 'Carbonara Revolution',
+                    category: 'speciali',
+                    price: 12.50,
+                    description: 'Con impasto Polesanissimo®, mozzarella, bacon, crema d\'uovo, cipolla, scaglie di pecorino, pepe, olio EVO.',
+                    ingredients: ['Impasto Polesanissimo®', 'Mozzarella', 'Bacon', 'Crema d\'uovo', 'Cipolla', 'Pecorino', 'Pepe', 'Olio EVO'],
+                    image: 'img/pizza3.jpg',
+                    badge: 'Specialità',
+                    status: 1,
+                    featured: true,
+                    largeTitle: true
+                },
+                {
+                    id: 4,
+                    name: 'Parma in Puglia',
+                    category: 'limited',
+                    price: 14.50,
+                    description: 'Gli ingredienti pregiati sono confezionati a parte per garantire la miglior esperienza. Con impasto Polesanissimo®, pomodoro, mozzarella di bufala, crudo di Montagnana 24 mesi e burrata, basilico, olio Evo.',
+                    ingredients: ['Impasto Polesanissimo®', 'Pomodoro', 'Mozzarella di bufala', 'Crudo di Montagnana 24 mesi', 'Burrata', 'Basilico', 'Olio EVO'],
+                    image: 'img/pizza4.jpg',
+                    badge: 'Limited Edition',
+                    status: 1,
+                    featured: true,
+                    largeTitle: true
+                },
+                {
+                    id: 5,
+                    name: 'Veg Garden',
+                    category: 'vegane',
+                    price: 10.50,
+                    description: 'Pomodoro San Marzano DOP, formaggio vegetale, zucchine, melanzane, peperoni, pomodorini e basilico fresco.',
+                    ingredients: ['Pomodoro San Marzano DOP', 'Formaggio vegetale', 'Zucchine', 'Melanzane', 'Peperoni', 'Pomodorini', 'Basilico fresco'],
+                    image: 'img/pizza5.jpg',
+                    badge: 'Vegana',
+                    status: 1,
+                    featured: false,
+                    largeTitle: false
+                },
+                {
+                    id: 6,
+                    name: 'Margherita Gluten Free',
+                    category: 'senza-glutine',
+                    price: 9.50,
+                    description: 'La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d\'olio extravergine d\'oliva, su base senza glutine.',
+                    ingredients: ['Base senza glutine', 'Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Basilico fresco', 'Olio EVO'],
+                    image: 'img/pizza1.jpg',
+                    badge: 'Senza Glutine',
+                    status: 1,
+                    featured: false,
+                    largeTitle: false
+                }
+            ];
+            
+            // Categorie map per mostrare il nome leggibile
+            const categoryMap = {
+                'classiche': 'Classiche',
+                'speciali': 'Specialità',
+                'limited': 'Limited Edition',
+                'vegane': 'Vegane',
+                'senza-glutine': 'Senza Glutine'
+            };
+            
+            // Variabili per il modal e form
+            const pizzaModal = document.getElementById('pizzaModal');
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const addPizzaBtn = document.getElementById('addPizzaBtn');
+            const closeModal = document.getElementById('closeModal');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const modalTitle = document.getElementById('modalTitle');
+            const pizzaForm = document.getElementById('pizzaForm');
+            
+            // Variabili per il delete modal
+            const deleteModal = document.getElementById('deleteModal');
+            const closeDeleteModal = document.getElementById('closeDeleteModal');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const deletePizzaName = document.getElementById('deletePizzaName');
+            
+            // Variabili per il carousel modal
+            const carouselModal = document.getElementById('carouselModal');
+            const addCarouselBtn = document.getElementById('addCarouselBtn');
+            const closeCarouselModal = document.getElementById('closeCarouselModal');
+            const cancelCarouselBtn = document.getElementById('cancelCarouselBtn');
+            const carouselForm = document.getElementById('carouselForm');
+            
+            // Variabili per i modals dei valori
+            const valoreModal = document.getElementById('valoreModal');
+            const addValoreBtn = document.getElementById('addValoreBtn');
+            const closeValoreModal = document.getElementById('closeValoreModal');
+            const cancelValoreBtn = document.getElementById('cancelValoreBtn');
+            const valoreForm = document.getElementById('valoreForm');
+            
+            // Variabili per i modals degli ingredienti
+            const ingredienteModal = document.getElementById('ingredienteModal');
+            const addIngredienteBtn = document.getElementById('addIngredienteBtn');
+            const closeIngredienteModal = document.getElementById('closeIngredienteModal');
+            const cancelIngredienteBtn = document.getElementById('cancelIngredienteBtn');
+            const ingredienteForm = document.getElementById('ingredienteForm');
+            
+            // Variabili per i modals della galleria
+            const galleryModal = document.getElementById('galleryModal');
+            const addLocaleImageBtn = document.getElementById('addLocaleImageBtn');
+            const closeGalleryModal = document.getElementById('closeGalleryModal');
+            const cancelGalleryBtn = document.getElementById('cancelGalleryBtn');
+            const galleryForm = document.getElementById('galleryForm');
+            
+            // Variabili per il successo alert
+            const successAlert = document.getElementById('successAlert');
+            const successMessage = document.getElementById('successMessage');
+            const carouselSuccessAlert = document.getElementById('carouselSuccessAlert');
+            const carouselSuccessMessage = document.getElementById('carouselSuccessMessage');
+            const valoriSuccessAlert = document.getElementById('valoriSuccessAlert');
+            const valoriSuccessMessage = document.getElementById('valoriSuccessMessage');
+            const ingredientiSuccessAlert = document.getElementById('ingredientiSuccessAlert');
+            const ingredientiSuccessMessage = document.getElementById('ingredientiSuccessMessage');
+            const localeSuccessAlert = document.getElementById('localeSuccessAlert');
+            const localeSuccessMessage = document.getElementById('localeSuccessMessage');
+            const storiaSuccessAlert = document.getElementById('storiaSuccessAlert');
+            const storiaSuccessMessage = document.getElementById('storiaSuccessMessage');
+            
+            // Carica la tabella iniziale
+            loadPizzaTable(pizze);
+            
+            // Cerca pizze
+            document.getElementById('searchPizza').addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const filteredPizze = pizze.filter(pizza => 
+                    pizza.name.toLowerCase().includes(searchTerm) || 
+                    pizza.description.toLowerCase().includes(searchTerm) ||
+                    pizza.ingredients.some(ing => ing.toLowerCase().includes(searchTerm))
+                );
+                loadPizzaTable(filteredPizze);
+            });
+            
+            // Funzione per caricare la tabella delle pizze
+            function loadPizzaTable(data) {
+                const tableBody = document.getElementById('pizzaTableBody');
+                tableBody.innerHTML = '';
+                
+                data.forEach(pizza => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><img src="${pizza.image}" alt="${pizza.name}" class="img-thumbnail"></td>
+                        <td>${pizza.name}</td>
+                        <td>${categoryMap[pizza.category]}</td>
+                        <td>€ ${pizza.price.toFixed(2)}</td>
+                        <td>${pizza.status === 1 ? '<span class="badge badge-success">Attiva</span>' : '<span class="badge badge-danger">Disattiva</span>'}</td>
+                        <td class="table-actions">
+                            <button class="btn btn-sm btn-primary edit-btn" data-id="${pizza.id}">✏️</button>
+                            <button class="btn btn-sm btn-danger delete-btn" data-id="${pizza.id}" data-name="${pizza.name}">🗑️</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Aggiungi event listener ai pulsanti dopo averli creati
+                addButtonEventListeners();
+            }
+            
+            // Funzione per aggiungere event listener ai pulsanti
+            function addButtonEventListeners() {
+                // Edit buttons
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const pizzaId = this.getAttribute('data-id');
+                        openEditModal(pizzaId);
+                    });
+                });
+                
+                // Delete buttons
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const pizzaId = this.getAttribute('data-id');
+                        const pizzaName = this.getAttribute('data-name');
+                        openDeleteModal(pizzaId, pizzaName);
+                    });
+                });
+            }
+            
+            // Funzione per aprire il modal di modifica
+            function openEditModal(pizzaId) {
+                const pizza = pizze.find(p => p.id == pizzaId);
+                if (!pizza) return;
+                
+                // Imposta i valori del form
+                document.getElementById('pizzaId').value = pizza.id;
+                document.getElementById('pizzaName').value = pizza.name;
+                document.getElementById('pizzaPrice').value = pizza.price;
+                document.getElementById('pizzaCategory').value = pizza.category;
+                document.getElementById('pizzaDescription').value = pizza.description;
+                document.getElementById('pizzaBadge').value = pizza.badge || '';
+                document.getElementById('pizzaStatus').value = pizza.status;
+                document.getElementById('pizzaFeatured').checked = pizza.featured;
+                document.getElementById('pizzaLargeTitle').checked = pizza.largeTitle;
+                
+                // Popola ingredienti
+                const tagsInput = document.getElementById('pizzaIngredients');
+                tagsInput.innerHTML = '';
+                pizza.ingredients.forEach(ingredient => {
+                    addIngredientTag(ingredient);
+                });
+                tagsInput.appendChild(document.getElementById('ingredientInput'));
+                
+                // Mostra anteprima immagine
+                document.getElementById('previewImage').src = pizza.image;
+                document.getElementById('imagePreview').style.display = 'flex';
+                
+                // Cambia il titolo del modal
+                modalTitle.textContent = 'Modifica Pizza';
+                
+                // Mostra il modal
+                pizzaModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            }
+            
+            // Funzione per aprire il modal di eliminazione
+            function openDeleteModal(pizzaId, pizzaName) {
+                // Salva l'ID della pizza da eliminare
+                document.getElementById('confirmDeleteBtn').setAttribute('data-id', pizzaId);
+                
+                // Imposta il nome della pizza
+                deletePizzaName.textContent = pizzaName;
+                
+                // Mostra il modal
+                deleteModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            }
+            
+            // Funzione per mostrare il successo alert
+            function showSuccessAlert(message, element = successAlert, messageElement = successMessage) {
+                messageElement.textContent = message;
+                element.style.display = 'flex';
+                
+                // Nascondi dopo 3 secondi
+                setTimeout(() => {
+                    element.style.display = 'none';
+                }, 3000);
+            }
+            
+            // Gestione degli ingredienti come tag
+            const ingredientInput = document.getElementById('ingredientInput');
+            
+            ingredientInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const value = this.value.trim();
+                    if (value) {
+                        addIngredientTag(value);
+                        this.value = '';
+                    }
+                }
+            });
+            
+            function addIngredientTag(text) {
+            const tagsInput = document.getElementById('pizzaIngredients');
+            const tag = document.createElement('div');
+            tag.className = 'tag';
+            tag.innerHTML = `
+                ${text}
+                <span class="tag-remove">×</span>
+            `;
+            
+            tag.querySelector('.tag-remove').addEventListener('click', function() {
+                tagsInput.removeChild(tag);
+            });
+            
+            tagsInput.insertBefore(tag, ingredientInput);
+        }
+
+        // Gestione dell'upload immagine per le pizze
+        const dropzone = document.getElementById('pizzaImageDropzone');
+        const fileInput = document.getElementById('pizzaImage');
+        const removeImageBtn = document.getElementById('removeImage');
+
+        dropzone.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        dropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary)';
+            this.style.backgroundColor = 'var(--primary-light)';
+        });
+
+        dropzone.addEventListener('dragleave', function() {
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+        });
+
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleImageSelection(fileInput, 'previewImage', 'imagePreview');
+            }
+        });
+
+        fileInput.addEventListener('change', function() {
+            handleImageSelection(this, 'previewImage', 'imagePreview');
+        });
+
+        function handleImageSelection(input, previewId, previewContainerId) {
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                
+                // Controlla se è un'immagine
+                if (!file.type.startsWith('image/')) {
+                    alert('Per favore seleziona un immagine valida.');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(previewId).src = e.target.result;
+                    document.getElementById(previewContainerId).style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        removeImageBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+        });
+
+        // Gestione dell'upload immagine per il carosello
+        const carouselDropzone = document.getElementById('carouselImageDropzone');
+        const carouselFileInput = document.getElementById('carouselImage');
+        const removeCarouselImageBtn = document.getElementById('removeCarouselImage');
+
+        carouselDropzone.addEventListener('click', function() {
+            carouselFileInput.click();
+        });
+
+        carouselDropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary)';
+            this.style.backgroundColor = 'var(--primary-light)';
+        });
+
+        carouselDropzone.addEventListener('dragleave', function() {
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+        });
+
+        carouselDropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+            
+            if (e.dataTransfer.files.length) {
+                carouselFileInput.files = e.dataTransfer.files;
+                handleImageSelection(carouselFileInput, 'carouselPreviewImage', 'carouselImagePreview');
+            }
+        });
+
+        carouselFileInput.addEventListener('change', function() {
+            handleImageSelection(this, 'carouselPreviewImage', 'carouselImagePreview');
+        });
+
+        removeCarouselImageBtn.addEventListener('click', function() {
+            carouselFileInput.value = '';
+            document.getElementById('carouselImagePreview').style.display = 'none';
+        });
+
+        // Event listeners per modals
+        addPizzaBtn.addEventListener('click', function() {
+            // Reset form
+            pizzaForm.reset();
+            
+            // Pulisci gli ingredienti
+            const tagsInput = document.getElementById('pizzaIngredients');
+            tagsInput.innerHTML = '';
+            tagsInput.appendChild(ingredientInput);
+            
+            // Nascondi anteprima immagine
+            document.getElementById('imagePreview').style.display = 'none';
+            
+            // Cambia il titolo del modal
+            modalTitle.textContent = 'Aggiungi Pizza';
+            
+            // Mostra il modal
+            pizzaModal.classList.add('show');
+            modalBackdrop.classList.add('show');
+        });
+
+        closeModal.addEventListener('click', function() {
+            pizzaModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        cancelBtn.addEventListener('click', function() {
+            pizzaModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        closeDeleteModal.addEventListener('click', function() {
+            deleteModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        cancelDeleteBtn.addEventListener('click', function() {
+            deleteModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Submit del form pizze
+        pizzaForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Raccogli ingredienti
+            const ingredientTags = document.querySelectorAll('#pizzaIngredients .tag');
+            const ingredients = Array.from(ingredientTags).map(tag => tag.textContent.trim().replace('×', ''));
+            
+            // Validazione ingredienti
+            if (ingredients.length === 0) {
+                alert('Aggiungi almeno un ingrediente');
+                return;
+            }
+            
+            // Validazione immagine
+            const imagePreview = document.getElementById('imagePreview');
+            if (imagePreview.style.display === 'none') {
+                alert('Seleziona un\'immagine per la pizza');
+                return;
+            }
+            
+            // Raccogli dati dal form
+            const pizzaId = document.getElementById('pizzaId').value;
+            const pizzaData = {
+                name: document.getElementById('pizzaName').value,
+                price: parseFloat(document.getElementById('pizzaPrice').value),
+                category: document.getElementById('pizzaCategory').value,
+                description: document.getElementById('pizzaDescription').value,
+                ingredients: ingredients,
+                image: document.getElementById('previewImage').src,
+                badge: document.getElementById('pizzaBadge').value,
+                status: parseInt(document.getElementById('pizzaStatus').value),
+                featured: document.getElementById('pizzaFeatured').checked,
+                largeTitle: document.getElementById('pizzaLargeTitle').checked
+            };
+            
+            // Se abbiamo un ID, è una modifica
+            if (pizzaId) {
+                // Trova l'indice della pizza
+                const index = pizze.findIndex(p => p.id == pizzaId);
+                if (index !== -1) {
+                    // Mantiene l'ID esistente
+                    pizzaData.id = parseInt(pizzaId);
+                    pizze[index] = pizzaData;
+                    showSuccessAlert('Pizza modificata con successo!');
+                }
+            } else {
+                // È un inserimento
+                pizzaData.id = pizze.length > 0 ? Math.max(...pizze.map(p => p.id)) + 1 : 1;
+                pizze.push(pizzaData);
+                showSuccessAlert('Pizza aggiunta con successo!');
+            }
+            
+            // Aggiorna la tabella
+            loadPizzaTable(pizze);
+            
+            // Chiudi il modal
+            pizzaModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Elimina pizza
+        confirmDeleteBtn.addEventListener('click', function() {
+            const pizzaId = this.getAttribute('data-id');
+            
+            // Trova l'indice della pizza
+            const index = pizze.findIndex(p => p.id == pizzaId);
+            if (index !== -1) {
+                // Rimuovi la pizza
+                pizze.splice(index, 1);
+                
+                // Aggiorna la tabella
+                loadPizzaTable(pizze);
+                
+                // Mostra messaggio di successo
+                showSuccessAlert('Pizza eliminata con successo!');
+            }
+            
+            // Chiudi il modal
+            deleteModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Carosello event listeners
+        addCarouselBtn.addEventListener('click', function() {
+            // Reset form
+            carouselForm.reset();
+            
+            // Nascondi anteprima immagine
+            document.getElementById('carouselImagePreview').style.display = 'none';
+            
+            // Aggiorna titolo
+            document.getElementById('carouselModalTitle').textContent = 'Aggiungi Immagine Carosello';
+            
+            // Mostra il modal
+            carouselModal.classList.add('show');
+            modalBackdrop.classList.add('show');
+        });
+
+        closeCarouselModal.addEventListener('click', function() {
+            carouselModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        cancelCarouselBtn.addEventListener('click', function() {
+            carouselModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Submit del form carosello
+        carouselForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validazione immagine
+            const imagePreview = document.getElementById('carouselImagePreview');
+            if (imagePreview.style.display === 'none') {
+                alert('Seleziona un\'immagine per il carosello');
+                return;
+            }
+            
+            // In un'implementazione reale, qui salveresti l'immagine
+            showSuccessAlert('Immagine carosello salvata con successo!', carouselSuccessAlert, carouselSuccessMessage);
+            
+            // Chiudi il modal
+            carouselModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Gestione ordine carosello
+        document.getElementById('saveOrderBtn').addEventListener('click', function() {
+            showSuccessAlert('Ordine salvato con successo!', carouselSuccessAlert, carouselSuccessMessage);
+        });
+
+        // Edit carosello buttons
+        document.querySelectorAll('.edit-carousel-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Ottieni l'immagine del carosello
+                const carouselItem = this.closest('.carousel-item');
+                const img = carouselItem.querySelector('img');
+                
+                // Popola il form
+                document.getElementById('carouselAlt').value = img.alt;
+                document.getElementById('carouselPreviewImage').src = img.src;
+                document.getElementById('carouselImagePreview').style.display = 'flex';
+                
+                // Aggiorna titolo
+                document.getElementById('carouselModalTitle').textContent = 'Modifica Immagine Carosello';
+                
+                // Mostra il modal
+                carouselModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+        });
+
+        // Delete carosello buttons
+        document.querySelectorAll('.delete-carousel-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Sei sicuro di voler eliminare questa immagine?')) {
+                    // In un'implementazione reale, qui elimineresti l'immagine
+                    this.closest('.carousel-item').remove();
+                    showSuccessAlert('Immagine eliminata con successo!', carouselSuccessAlert, carouselSuccessMessage);
+                }
+            });
+        });
+
+        // Gestione immagine storia
+        const storiaDropzone = document.getElementById('storiaImageDropzone');
+        const storiaFileInput = document.getElementById('storiaImage');
+
+        storiaDropzone.addEventListener('click', function() {
+            storiaFileInput.click();
+        });
+
+        storiaDropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary)';
+            this.style.backgroundColor = 'var(--primary-light)';
+        });
+
+        storiaDropzone.addEventListener('dragleave', function() {
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+        });
+
+        storiaDropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+            
+            if (e.dataTransfer.files.length) {
+                storiaFileInput.files = e.dataTransfer.files;
+                const file = e.dataTransfer.files[0];
+                
+                if (!file.type.startsWith('image/')) {
+                    alert('Per favore seleziona un immagine valida.');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('storiaImagePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        storiaFileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                
+                if (!file.type.startsWith('image/')) {
+                    alert('Per favore seleziona un immagine valida.');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('storiaImagePreview').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Salva modifiche storia
+        document.getElementById('saveStoria').addEventListener('click', function() {
+            // In un'implementazione reale, qui salveresti i dati
+            showSuccessAlert('Modifiche salvate con successo!', storiaSuccessAlert, storiaSuccessMessage);
+        });
+
+        // Gestione editor WYSIWYG semplice
+        document.querySelectorAll('.wysiwyg-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const content = document.getElementById('storiaContent');
+                
+                if (this.classList.contains('bold-btn')) {
+                    document.execCommand('bold', false, null);
+                } else if (this.classList.contains('italic-btn')) {
+                    document.execCommand('italic', false, null);
+                } else if (this.classList.contains('underline-btn')) {
+                    document.execCommand('underline', false, null);
+                } else if (this.classList.contains('paragraph-btn')) {
+                    document.execCommand('formatBlock', false, '<p>');
+                }
+                
+                content.focus();
+            });
+        });
+
+        // Valori
+        // Mostra modal per aggiungere valore
+        addValoreBtn.addEventListener('click', function() {
+            // Reset form
+            valoreForm.reset();
+            
+            // Aggiorna titolo
+            document.getElementById('valoreModalTitle').textContent = 'Aggiungi Valore';
+            
+            // Mostra il modal
+            valoreModal.classList.add('show');
+            modalBackdrop.classList.add('show');
+        });
+
+        closeValoreModal.addEventListener('click', function() {
+            valoreModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        cancelValoreBtn.addEventListener('click', function() {
+            valoreModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Edit valore buttons
+        document.querySelectorAll('.edit-valore-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const valoreCard = this.closest('.value-card');
+                
+                // Popola il form
+                document.getElementById('valoreIcon').value = valoreCard.querySelector('.value-icon').textContent;
+                document.getElementById('valoreTitolo').value = valoreCard.querySelector('.value-title').textContent;
+                document.getElementById('valoreDescrizione').value = valoreCard.querySelector('.value-description').textContent;
+                
+                // Aggiorna titolo
+                document.getElementById('valoreModalTitle').textContent = 'Modifica Valore';
+                
+                // Mostra il modal
+                valoreModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+        });
+
+        // Delete valore buttons
+        document.querySelectorAll('.delete-valore-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Sei sicuro di voler eliminare questo valore?')) {
+                    // In un'implementazione reale, qui elimineresti il valore
+                    this.closest('.value-card').remove();
+                    showSuccessAlert('Valore eliminato con successo!', valoriSuccessAlert, valoriSuccessMessage);
+                }
+            });
+        });
+
+        // Submit del form valore
+        valoreForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Raccogli dati dal form
+            const valoreData = {
+                icon: document.getElementById('valoreIcon').value,
+                title: document.getElementById('valoreTitolo').value,
+                description: document.getElementById('valoreDescrizione').value
+            };
+            
+            // In un'implementazione reale, qui salveresti i dati
+            showSuccessAlert('Valore salvato con successo!', valoriSuccessAlert, valoriSuccessMessage);
+            
+            // Aggiungi nuovo valore o aggiorna esistente (simulazione)
+            const valoriContainer = document.getElementById('valoriContainer');
+            
+            // In questo esempio aggiungiamo sempre un nuovo valore
+            const newValoreCard = document.createElement('div');
+            newValoreCard.className = 'value-card';
+            newValoreCard.innerHTML = `
+                <div class="value-icon">${valoreData.icon}</div>
+                <h3 class="value-title">${valoreData.title}</h3>
+                <p class="value-description">${valoreData.description}</p>
+                <div class="value-actions">
+                    <button class="btn btn-sm btn-secondary edit-valore-btn">Modifica</button>
+                    <button class="btn btn-sm btn-danger delete-valore-btn">Elimina</button>
+                </div>
+            `;
+            
+            // Aggiungi event listeners ai nuovi pulsanti
+            newValoreCard.querySelector('.edit-valore-btn').addEventListener('click', function() {
+                const valoreCard = this.closest('.value-card');
+                
+                // Popola il form
+                document.getElementById('valoreIcon').value = valoreCard.querySelector('.value-icon').textContent;
+                document.getElementById('valoreTitolo').value = valoreCard.querySelector('.value-title').textContent;
+                document.getElementById('valoreDescrizione').value = valoreCard.querySelector('.value-description').textContent;
+                
+                // Aggiorna titolo
+                document.getElementById('valoreModalTitle').textContent = 'Modifica Valore';
+                
+                // Mostra il modal
+                valoreModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+            
+            newValoreCard.querySelector('.delete-valore-btn').addEventListener('click', function() {
+                if (confirm('Sei sicuro di voler eliminare questo valore?')) {
+                    this.closest('.value-card').remove();
+                    showSuccessAlert('Valore eliminato con successo!', valoriSuccessAlert, valoriSuccessMessage);
+                }
+            });
+            
+            valoriContainer.appendChild(newValoreCard);
+            
+            // Chiudi il modal
+            valoreModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Salva ordine valori
+        document.getElementById('saveValoriOrderBtn').addEventListener('click', function() {
+            showSuccessAlert('Ordine salvato con successo!', valoriSuccessAlert, valoriSuccessMessage);
+        });
+
+        // Ingredienti
+        // Mostra modal per aggiungere ingrediente
+        addIngredienteBtn.addEventListener('click', function() {
+            // Reset form
+            ingredienteForm.reset();
+            
+            // Nascondi anteprima immagine
+            document.getElementById('ingredienteImagePreview').style.display = 'none';
+            
+            // Aggiorna titolo
+            document.getElementById('ingredienteModalTitle').textContent = 'Aggiungi Ingrediente';
+            
+            // Mostra il modal
+            ingredienteModal.classList.add('show');
+            modalBackdrop.classList.add('show');
+        });
+
+        closeIngredienteModal.addEventListener('click', function() {
+            ingredienteModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        cancelIngredienteBtn.addEventListener('click', function() {
+            ingredienteModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Gestione immagine ingrediente
+        const ingredienteDropzone = document.getElementById('ingredienteImageDropzone');
+        const ingredienteFileInput = document.getElementById('ingredienteImage');
+        const removeIngredienteImageBtn = document.getElementById('removeIngredienteImage');
+
+        ingredienteDropzone.addEventListener('click', function() {
+            ingredienteFileInput.click();
+        });
+
+        ingredienteDropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary)';
+            this.style.backgroundColor = 'var(--primary-light)';
+        });
+
+        ingredienteDropzone.addEventListener('dragleave', function() {
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+        });
+
+        ingredienteDropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+            
+            if (e.dataTransfer.files.length) {
+                ingredienteFileInput.files = e.dataTransfer.files;
+                handleImageSelection(ingredienteFileInput, 'ingredientePreviewImage', 'ingredienteImagePreview');
+            }
+        });
+
+        ingredienteFileInput.addEventListener('change', function() {
+            handleImageSelection(this, 'ingredientePreviewImage', 'ingredienteImagePreview');
+        });
+
+        removeIngredienteImageBtn.addEventListener('click', function() {
+            ingredienteFileInput.value = '';
+            document.getElementById('ingredienteImagePreview').style.display = 'none';
+        });
+
+        // Edit ingrediente buttons
+        document.querySelectorAll('.edit-ingrediente-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const ingredienteCard = this.closest('.ingredient-card');
+                
+                // Popola il form
+                document.getElementById('ingredienteTitolo').value = ingredienteCard.querySelector('.ingredient-title').textContent;
+                document.getElementById('ingredienteDescrizione').value = ingredienteCard.querySelector('.ingredient-description').textContent;
+                document.getElementById('ingredienteBadge').value = ingredienteCard.querySelector('.ingredient-badge').textContent;
+                
+                // Mostra anteprima immagine
+                document.getElementById('ingredientePreviewImage').src = ingredienteCard.querySelector('.ingredient-img').src;
+                document.getElementById('ingredienteImagePreview').style.display = 'flex';
+                
+                // Aggiorna titolo
+                document.getElementById('ingredienteModalTitle').textContent = 'Modifica Ingrediente';
+                
+                // Mostra il modal
+                ingredienteModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+        });
+
+        // Delete ingrediente buttons
+        document.querySelectorAll('.delete-ingrediente-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Sei sicuro di voler eliminare questo ingrediente?')) {
+                    // In un'implementazione reale, qui elimineresti l'ingrediente
+                    this.closest('.ingredient-card').remove();
+                    showSuccessAlert('Ingrediente eliminato con successo!', ingredientiSuccessAlert, ingredientiSuccessMessage);
+                }
+            });
+        });
+
+        // Submit del form ingrediente
+        ingredienteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validazione immagine
+            const imagePreview = document.getElementById('ingredienteImagePreview');
+            if (imagePreview.style.display === 'none') {
+                alert('Seleziona un\'immagine per l\'ingrediente');
+                return;
+            }
+            
+            // Raccogli dati dal form
+            const ingredienteData = {
+                title: document.getElementById('ingredienteTitolo').value,
+                description: document.getElementById('ingredienteDescrizione').value,
+                badge: document.getElementById('ingredienteBadge').value,
+                image: document.getElementById('ingredientePreviewImage').src
+            };
+            
+            // In un'implementazione reale, qui salveresti i dati
+            showSuccessAlert('Ingrediente salvato con successo!', ingredientiSuccessAlert, ingredientiSuccessMessage);
+            
+            // Aggiungi nuovo ingrediente o aggiorna esistente (simulazione)
+            const ingredientiContainer = document.getElementById('ingredientiContainer');
+            
+            // In questo esempio aggiungiamo sempre un nuovo ingrediente
+            const newIngredienteCard = document.createElement('div');
+            newIngredienteCard.className = 'ingredient-card';
+            newIngredienteCard.innerHTML = `
+                <img src="${ingredienteData.image}" alt="${ingredienteData.title}" class="ingredient-img">
+                <div class="ingredient-content">
+                    <h3 class="ingredient-title">${ingredienteData.title}</h3>
+                    <p class="ingredient-description">${ingredienteData.description}</p>
+                    <span class="ingredient-badge">${ingredienteData.badge}</span>
+                    <div class="ingredient-actions">
+                        <button class="btn btn-sm btn-secondary edit-ingrediente-btn">Modifica</button>
+                        <button class="btn btn-sm btn-danger delete-ingrediente-btn">Elimina</button>
+                    </div>
+                </div>
+            `;
+            
+            // Aggiungi event listeners ai nuovi pulsanti
+            newIngredienteCard.querySelector('.edit-ingrediente-btn').addEventListener('click', function() {
+                const ingredienteCard = this.closest('.ingredient-card');
+                
+                // Popola il form
+                document.getElementById('ingredienteTitolo').value = ingredienteCard.querySelector('.ingredient-title').textContent;
+                document.getElementById('ingredienteDescrizione').value = ingredienteCard.querySelector('.ingredient-description').textContent;
+                document.getElementById('ingredienteBadge').value = ingredienteCard.querySelector('.ingredient-badge').textContent;
+                
+                // Mostra anteprima immagine
+                document.getElementById('ingredientePreviewImage').src = ingredienteCard.querySelector('.ingredient-img').src;
+                document.getElementById('ingredienteImagePreview').style.display = 'flex';
+                
+                // Aggiorna titolo
+                document.getElementById('ingredienteModalTitle').textContent = 'Modifica Ingrediente';
+                
+                // Mostra il modal
+                ingredienteModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+            
+            newIngredienteCard.querySelector('.delete-ingrediente-btn').addEventListener('click', function() {
+                if (confirm('Sei sicuro di voler eliminare questo ingrediente?')) {
+                    this.closest('.ingredient-card').remove();
+                    showSuccessAlert('Ingrediente eliminato con successo!', ingredientiSuccessAlert, ingredientiSuccessMessage);
+                }
+            });
+            
+            ingredientiContainer.appendChild(newIngredienteCard);
+            
+            // Chiudi il modal
+            ingredienteModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Salva introduzione ingredienti
+        document.getElementById('saveIngredientiIntroBtn').addEventListener('click', function() {
+            showSuccessAlert('Introduzione salvata con successo!', ingredientiSuccessAlert, ingredientiSuccessMessage);
+        });
+
+        // Locale / Galleria
+        // Mostra modal per aggiungere immagine galleria
+        addLocaleImageBtn.addEventListener('click', function() {
+            // Reset form
+            galleryForm.reset();
+            
+            // Nascondi anteprima immagine
+            document.getElementById('galleryImagePreview').style.display = 'none';
+            
+            // Aggiorna titolo
+            document.getElementById('galleryModalTitle').textContent = 'Aggiungi Immagine Galleria';
+            
+            // Mostra il modal
+            galleryModal.classList.add('show');
+            modalBackdrop.classList.add('show');
+        });
+
+        closeGalleryModal.addEventListener('click', function() {
+            galleryModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        cancelGalleryBtn.addEventListener('click', function() {
+            galleryModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Gestione immagine galleria
+        const galleryDropzone = document.getElementById('galleryImageDropzone');
+        const galleryFileInput = document.getElementById('galleryImage');
+        const removeGalleryImageBtn = document.getElementById('removeGalleryImage');
+
+        galleryDropzone.addEventListener('click', function() {
+            galleryFileInput.click();
+        });
+
+        galleryDropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'var(--primary)';
+            this.style.backgroundColor = 'var(--primary-light)';
+        });
+
+        galleryDropzone.addEventListener('dragleave', function() {
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+        });
+
+        galleryDropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#ced4da';
+            this.style.backgroundColor = '';
+            
+            if (e.dataTransfer.files.length) {
+                galleryFileInput.files = e.dataTransfer.files;
+                handleImageSelection(galleryFileInput, 'galleryPreviewImage', 'galleryImagePreview');
+            }
+        });
+
+        galleryFileInput.addEventListener('change', function() {
+            handleImageSelection(this, 'galleryPreviewImage', 'galleryImagePreview');
+        });
+
+        removeGalleryImageBtn.addEventListener('click', function() {
+            galleryFileInput.value = '';
+            document.getElementById('galleryImagePreview').style.display = 'none';
+        });
+
+        // Edit gallery buttons
+        document.querySelectorAll('.edit-gallery-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const galleryItem = this.closest('.gallery-item');
+                const img = galleryItem.querySelector('img');
+                const caption = galleryItem.querySelector('.gallery-item-caption');
+                
+                // Popola il form
+                document.getElementById('galleryCaption').value = caption.textContent;
+                document.getElementById('galleryAlt').value = img.alt;
+                document.getElementById('galleryPreviewImage').src = img.src;
+                document.getElementById('galleryImagePreview').style.display = 'flex';
+                
+                // Aggiorna titolo
+                document.getElementById('galleryModalTitle').textContent = 'Modifica Immagine Galleria';
+                
+                // Mostra il modal
+                galleryModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+        });
+
+        // Delete gallery buttons
+        document.querySelectorAll('.delete-gallery-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (confirm('Sei sicuro di voler eliminare questa immagine?')) {
+                    // In un'implementazione reale, qui elimineresti l'immagine
+                    this.closest('.gallery-item').remove();
+                    showSuccessAlert('Immagine eliminata con successo!', localeSuccessAlert, localeSuccessMessage);
+                }
+            });
+        });
+
+        // Submit del form galleria
+        galleryForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validazione immagine
+            const imagePreview = document.getElementById('galleryImagePreview');
+            if (imagePreview.style.display === 'none') {
+                alert('Seleziona un\'immagine per la galleria');
+                return;
+            }
+            
+            // Raccogli dati dal form
+            const galleryData = {
+                caption: document.getElementById('galleryCaption').value,
+                alt: document.getElementById('galleryAlt').value,
+                image: document.getElementById('galleryPreviewImage').src
+            };
+            
+            // In un'implementazione reale, qui salveresti i dati
+            showSuccessAlert('Immagine galleria salvata con successo!', localeSuccessAlert, localeSuccessMessage);
+            
+            // Aggiungi nuova immagine o aggiorna esistente (simulazione)
+            const galleryContainer = document.getElementById('galleryContainer');
+            
+            // In questo esempio aggiungiamo sempre una nuova immagine
+            const newGalleryItem = document.createElement('div');
+            newGalleryItem.className = 'gallery-item';
+            newGalleryItem.innerHTML = `
+                <img src="${galleryData.image}" alt="${galleryData.alt}">
+                <div class="gallery-item-overlay">
+                    <div class="gallery-item-caption">${galleryData.caption}</div>
+                    <div class="gallery-item-actions">
+                        <button class="btn btn-sm btn-secondary edit-gallery-btn">📝</button>
+                        <button class="btn btn-sm btn-danger delete-gallery-btn">🗑️</button>
+                    </div>
+                </div>
+            `;
+            
+            // Aggiungi event listeners ai nuovi pulsanti
+            newGalleryItem.querySelector('.edit-gallery-btn').addEventListener('click', function() {
+                const galleryItem = this.closest('.gallery-item');
+                const img = galleryItem.querySelector('img');
+                const caption = galleryItem.querySelector('.gallery-item-caption');
+                
+                // Popola il form
+                document.getElementById('galleryCaption').value = caption.textContent;
+                document.getElementById('galleryAlt').value = img.alt;
+                document.getElementById('galleryPreviewImage').src = img.src;
+                document.getElementById('galleryImagePreview').style.display = 'flex';
+                
+                // Aggiorna titolo
+                document.getElementById('galleryModalTitle').textContent = 'Modifica Immagine Galleria';
+                
+                // Mostra il modal
+                galleryModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+            
+            newGalleryItem.querySelector('.delete-gallery-btn').addEventListener('click', function() {
+                if (confirm('Sei sicuro di voler eliminare questa immagine?')) {
+                    this.closest('.gallery-item').remove();
+                    showSuccessAlert('Immagine eliminata con successo!', localeSuccessAlert, localeSuccessMessage);
+                }
+            });
+            
+            galleryContainer.appendChild(newGalleryItem);
+            
+            // Chiudi il modal
+            galleryModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Salva introduzione locale
+        document.getElementById('saveLocaleIntroBtn').addEventListener('click', function() {
+            showSuccessAlert('Introduzione salvata con successo!', localeSuccessAlert, localeSuccessMessage);
+        });
+
+        // Salva ordine galleria
+        document.getElementById('saveGalleryOrderBtn').addEventListener('click', function() {
+            showSuccessAlert('Ordine salvato con successo!', localeSuccessAlert, localeSuccessMessage);
+        });
+
+        // Chiudi i modal se si clicca fuori (solo su modalBackdrop)
+        modalBackdrop.addEventListener('click', function() {
+            pizzaModal.classList.remove('show');
+            deleteModal.classList.remove('show');
+            carouselModal.classList.remove('show');
+            valoreModal.classList.remove('show');
+            ingredienteModal.classList.remove('show');
+            galleryModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+    });
+    </script>
+</body>
+</html>
