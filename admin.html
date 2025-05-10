@@ -7,29 +7,78 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="js/firebase-config.js"></script>
+    <script type="module" src="js/firebase-config.js"></script>
+    <style>
+        /* Loader styles */
+        .auth-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            display: flex; /* Mostra il loader di default */
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .auth-loader-content { text-align: center; }
+        .auth-loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .auth-loader-text { color: var(--dark); font-size: 1.2rem; }
+        .admin-content { display: none; /* Nascosto finché l'auth non è verificata */ }
+    </style>
 </head>
 <body>
-    <!-- Header Admin -->
-    <header class="admin-header">
-        <div class="container admin-header-container">
-            <a href="admin.html" class="admin-logo">
-                <img src="img/logopizzeria.png" alt="PIZZIAMO Logo">
-                <h1>Admin Panel</h1>
-            </a>
-            <div class="admin-actions">
-                <div class="admin-user">
-                    <div class="admin-user-avatar">A</div>
-                    <span>Admin</span>
-                </div>
-                <a href="index.html" class="admin-logout">Esci</a>
-            </div>
+    <script type="module">
+        import { protectAdminPages } from './js/firebase-config.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // protectAdminPages ora dovrebbe gestire il loader, il contenuto
+            // e l'aggiornamento dell'avatar/email come definito in firebase-config.js
+            protectAdminPages();
+        });
+    </script>
+    <!-- Auth Loader -->
+    <div class="auth-loader" id="authLoader">
+        <div class="auth-loader-content">
+            <div class="auth-loader-spinner"></div>
+            <div class="auth-loader-text">Verifica autenticazione...</div>
         </div>
-    </header>
+    </div>
+    
+    <!-- Wrapper per tutto il contenuto admin -->
+    <div class="admin-content" id="adminContent">
+        <!-- Header Admin -->
+        <header class="admin-header">
+            <div class="container admin-header-container">
+                <a href="admin.html" class="admin-logo">
+                    <img src="img/logopizzeria.png" alt="PIZZIAMO Logo">
+                    <h1>Admin Panel</h1>
+                </a>
+                <div class="admin-actions">
+                    <div class="admin-user">
+                        <div class="admin-user-avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                    <a href="index.html" class="admin-logout">Esci</a>
+                </div>
+            </div>
+        </header>
     
     <!-- Sidebar -->
     <aside class="admin-sidebar">
@@ -835,68 +884,70 @@
     
     <!-- Modal Backdrop -->
     <div class="modal-backdrop" id="modalBackdrop"></div>
-    
-    <script>
-        protectAdminPages();
+    </div> <script type="module">
+        // Importa 'auth' e 'db' (se necessario per Firestore) da firebase-config.js
+        import { auth, db } from './js/firebase-config.js';
+        // Non importare protectAdminPages qui, è già gestita dallo script all'inizio del body.
+
         document.addEventListener('DOMContentLoaded', function() {
-        // Gestione utente corrente
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                // Aggiorna info utente nell'header
-                const userEmail = user.email;
-                const userInitial = userEmail.charAt(0).toUpperCase();
-                
-                document.querySelector('.admin-user-avatar').textContent = userInitial;
-                document.querySelector('.admin-user span').textContent = userEmail;
-            } else {
-                // Se non c'è utente, reindirizza al login
-                window.location.href = 'login.html';
+            // Riferimenti al DOM che potrebbero essere già stati gestiti da protectAdminPages
+            // per la visualizzazione iniziale, ma utili qui per altre interazioni.
+            const authLoader = document.getElementById('authLoader');
+            const adminContent = document.getElementById('adminContent');
+
+            // Gestione logout
+            const logoutButton = document.querySelector('.admin-logout');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    auth.signOut().then(() => {
+                        window.location.href = 'login.html';
+                    }).catch(error => {
+                        console.error('Errore durante il logout:', error);
+                        alert('Errore durante il logout: ' + error.message); // Feedback utente
+                    });
+                });
             }
-        });
-        
-        // Gestione logout
-        document.querySelector('.admin-logout').addEventListener('click', function(e) {
-            e.preventDefault();
             
-            auth.signOut().then(() => {
-                window.location.href = 'login.html';
-            }).catch(error => {
-                console.error('Errore durante il logout:', error);
-            });
-        });
             // Toggle Sidebar
             const toggleBtn = document.getElementById('toggleSidebar');
             const sidebar = document.querySelector('.admin-sidebar');
-            const mainContent = document.getElementById('adminMain');
+            const mainContentEl = document.getElementById('adminMain'); // Rinominato per evitare conflitto con variabile adminContent
             
-            toggleBtn.addEventListener('click', function() {
-                sidebar.classList.toggle('collapsed');
-                mainContent.classList.toggle('expanded');
-            });
+            if (toggleBtn && sidebar && mainContentEl) {
+                toggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    mainContentEl.classList.toggle('expanded');
+                });
+            }
             
             // Navigation menu
             const navLinks = document.querySelectorAll('.admin-menu-link');
             const contentSections = document.querySelectorAll('.content-section');
             
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Remove active class from all links
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    // Add active class to clicked link
-                    this.classList.add('active');
-                    
-                    // Hide all sections
-                    contentSections.forEach(section => section.style.display = 'none');
-                    
-                    // Show selected section
-                    const targetSection = this.getAttribute('data-section');
-                    document.getElementById(targetSection).style.display = 'block';
+            if (navLinks.length > 0 && contentSections.length > 0) {
+                navLinks.forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                        contentSections.forEach(section => section.style.display = 'none');
+                        const targetSectionId = this.getAttribute('data-section');
+                        const targetSection = document.getElementById(targetSectionId);
+                        if (targetSection) {
+                            targetSection.style.display = 'block';
+                        } else {
+                            console.warn('Sezione non trovata:', targetSectionId);
+                        }
+                    });
                 });
-            });
+                // Attiva la prima sezione di default se esiste
+                if (navLinks[0]) {
+                    navLinks[0].click();
+                }
+            }
             
-            // Pizze esempio (in un'implementazione reale verrebbero dal database)
+            // Pizze esempio (in un'implementazione reale verrebbero dal database Firestore)
             const pizze = [
                 {
                     id: 1,

@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/index.css">
+    <script type="module" src="js/firebase-config.js"></script>
     <!-- Firebase App (required) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <!-- Firebase Authentication -->
@@ -30,7 +31,7 @@
                         <span>Via Pontegradella 289/A, 44123 Ferrara (FE)</span>
                     </div>
                     <div class="phone">
-                        <a href="admin.html"><i class="icon">📞</i></a>
+                        <i class="icon" style="cursor: pointer;" onclick="adminAccess(event)">📞</i>
                         <span>Tel: 000000000</span>
                     </div>
                 </div>
@@ -266,6 +267,12 @@
     </footer>
     
     <script>
+        function adminAccess(event) {
+                // Verifica se CTRL e SHIFT sono premuti durante il click
+                if (event.ctrlKey && event.shiftKey) {
+                    window.location.href = 'admin.html';
+                } else {}
+            }
         // Script ottimizzato per il funzionamento delle FAQ
         document.addEventListener('DOMContentLoaded', function() {
             // Funzione per le FAQ
@@ -452,7 +459,7 @@
                     }
                 });
             });
-            
+
             // Funzione per gestire il pulsante di chiamata su mobile
             function checkMobile() {
                 const mobileButton = document.querySelector('.mobile-only');
