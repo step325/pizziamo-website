@@ -1,24 +1,8 @@
-import { db, storage } from './firebase-config.js';
+import { db, storage, ref, uploadBytes, getDownloadURL, uploadImage } from './firebase-config.js';
 import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
-import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
 // Riferimento alla collezione pizze
 const pizzeCollection = collection(db, 'pizze');
-
-// Funzione helper per caricare immagini
-async function uploadImage(file, path) {
-    if (!file) return null;
-    
-    try {
-        const storageRef = ref(storage, `${path}/${Date.now()}_${file.name}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        return downloadURL;
-    } catch (error) {
-        console.error("Errore durante il caricamento dell'immagine:", error);
-        throw error;
-    }
-}
 
 // Funzione per caricare tutte le pizze dal database
 export async function loadPizzas() {
