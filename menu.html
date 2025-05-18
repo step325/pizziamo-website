@@ -417,156 +417,62 @@
         </div>
     </footer>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Dati pizze
-            const pizze = [
-                {
-                    id: 1,
-                    name: 'Margherita',
-                    category: 'classiche',
-                    price: 7.50,
-                    description: 'La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d\'olio extravergine d\'oliva.',
-                    ingredients: ['Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Basilico fresco', 'Olio EVO'],
-                    image: 'img/pizza1.jpg',
-                    badge: 'Classica'
-                },
-                {
-                    id: 2,
-                    name: 'Diavola',
-                    category: 'classiche',
-                    price: 8.50,
-                    description: 'Pomodoro San Marzano DOP, mozzarella fiordilatte e salame piccante. Per gli amanti del gusto deciso e leggermente piccante.',
-                    ingredients: ['Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Salame piccante'],
-                    image: 'img/pizza2.jpg',
-                    badge: 'Classica'
-                },
-                {
-                    id: 3,
-                    name: 'Carbonara Revolution',
-                    category: 'speciali',
-                    price: 12.50,
-                    description: 'Con impasto Polesanissimo®, mozzarella, bacon, crema d\'uovo, cipolla, scaglie di pecorino, pepe, olio EVO.',
-                    ingredients: ['Impasto Polesanissimo®', 'Mozzarella', 'Bacon', 'Crema d\'uovo', 'Cipolla', 'Pecorino', 'Pepe', 'Olio EVO'],
-                    image: 'img/pizza3.jpg',
-                    badge: 'Specialità'
-                },
-                {
-                    id: 4,
-                    name: 'Parma in Puglia',
-                    category: 'limited',
-                    price: 14.50,
-                    description: 'Gli ingredienti pregiati sono confezionati a parte per garantire la miglior esperienza. Con impasto Polesanissimo®, pomodoro, mozzarella di bufala, crudo di Montagnana 24 mesi e burrata, basilico, olio Evo.',
-                    ingredients: ['Impasto Polesanissimo®', 'Pomodoro', 'Mozzarella di bufala', 'Crudo di Montagnana 24 mesi', 'Burrata', 'Basilico', 'Olio EVO'],
-                    image: 'img/pizza4.jpg',
-                    badge: 'Limited Edition'
-                },
-                {
-                    id: 5,
-                    name: 'Veg Garden',
-                    category: 'vegane',
-                    price: 10.50,
-                    description: 'Pomodoro San Marzano DOP, formaggio vegetale, zucchine, melanzane, peperoni, pomodorini e basilico fresco.',
-                    ingredients: ['Pomodoro San Marzano DOP', 'Formaggio vegetale', 'Zucchine', 'Melanzane', 'Peperoni', 'Pomodorini', 'Basilico fresco'],
-                    image: 'img/pizza5.jpg',
-                    badge: 'Vegana'
-                },
-                {
-                    id: 6,
-                    name: 'Margherita Gluten Free',
-                    category: 'senza-glutine',
-                    price: 9.50,
-                    description: 'La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d\'olio extravergine d\'oliva, su base senza glutine.',
-                    ingredients: ['Base senza glutine', 'Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Basilico fresco', 'Olio EVO'],
-                    image: 'img/pizza1.jpg',
-                    badge: 'Senza Glutine'
+    <script type="module">
+        import { db } from './js/firebase-config.js';
+        import { collection, getDocs, query, where, orderBy } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+        let allPizzasData = []; // Store all fetched pizzas globally within the module
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                // Riferimento alla collezione pizze
+                const pizzeCollection = collection(db, 'pizze');
+                
+                // Query per ottenere solo le pizze attive
+                const pizzeQuery = query(
+                    pizzeCollection, 
+                    where('status', '==', 1)
+                    // orderBy('name') // Firestore requires an index for this, or it can be done client-side
+                );
+                
+                const querySnapshot = await getDocs(pizzeQuery);
+                
+                querySnapshot.forEach((doc) => {
+                    allPizzasData.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                // Sort pizzas by name client-side
+                allPizzasData.sort((a, b) => a.name.localeCompare(b.name));
+                
+                // Popoliamo la griglia delle pizze
+                populatePizzaGrid(allPizzasData);
+                
+                // Impostiamo i filtri e i tab
+                setupMenuTabs(allPizzasData);
+                setupFilterButtons(allPizzasData); // Pass allPizzasData to filter buttons setup
+                
+            } catch (error) {
+                console.error("Errore durante il caricamento delle pizze:", error);
+                // Optionally, display a user-friendly message on the page
+                const allPizzaGrid = document.querySelector('#all .pizze-grid');
+                if (allPizzaGrid) {
+                    allPizzaGrid.innerHTML = '<p class="error-message">Errore nel caricamento del menù. Riprova più tardi.</p>';
                 }
-            ];
-            
-            // Menu Tabs
-            const menuTabs = document.querySelectorAll('.menu-tab');
-            const menuCategories = document.querySelectorAll('.menu-category');
-            
-            menuTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const category = this.getAttribute('data-category');
-                    
-                    // Rimuovi active da tutti i tab
-                    menuTabs.forEach(t => t.classList.remove('active'));
-                    // Aggiungi active al tab cliccato
-                    this.classList.add('active');
-                    
-                    // Nascondi tutte le categorie
-                    menuCategories.forEach(cat => cat.classList.remove('active'));
-                    
-                    // Mostra la categoria selezionata
-                    if (category === 'all') {
-                        document.getElementById('all').classList.add('active');
-                    } else {
-                        document.getElementById(category).classList.add('active');
-                    }
-                });
-            });
-            
-            // Filtri
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            
-            filterButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const filter = this.getAttribute('data-filter');
-                    
-                    // Rimuovi active da tutti i bottoni
-                    filterButtons.forEach(b => b.classList.remove('active'));
-                    // Aggiungi active al bottone cliccato
-                    this.classList.add('active');
-                    
-                    // Implementazione reale filtrerebbe le pizze in base al filtro
-                    // Per questa demo, mostriamo solo un messaggio
-                    console.log('Filtro applicato:', filter);
-                });
-            });
-            
-            // Modal
+            }
+
+            // Modal handling (original logic, adapted)
             const modal = document.getElementById('pizzaModal');
             const closeModalBtn = document.getElementById('closeModal');
-            const orderButtons = document.querySelectorAll('.order-btn');
-            
-            orderButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const pizzaId = parseInt(this.getAttribute('data-pizza-id'));
-                    const pizza = pizze.find(p => p.id === pizzaId);
-                    
-                    if (pizza) {
-                        // Popola il modal con i dati della pizza
-                        document.getElementById('modalPizzaTitle').textContent = pizza.name;
-                        document.getElementById('modalPizzaBadge').textContent = pizza.badge;
-                        document.getElementById('modalPizzaDescription').textContent = pizza.description;
-                        document.getElementById('modalPizzaPrice').textContent = `€ ${pizza.price.toFixed(2)}`;
-                        document.getElementById('modalPizzaImage').style.backgroundImage = `url('${pizza.image}')`;
-                        
-                        // Popola ingredienti
-                        const ingredientsList = document.getElementById('modalIngredientsList');
-                        ingredientsList.innerHTML = '';
-                        pizza.ingredients.forEach(ingredient => {
-                            const ingItem = document.createElement('div');
-                            ingItem.className = 'ingredient-item';
-                            ingItem.textContent = ingredient;
-                            ingredientsList.appendChild(ingItem);
-                        });
-                        
-                        // Mostra il modal
-                        modal.classList.add('active');
-                        document.body.style.overflow = 'hidden'; // Impedisce lo scroll della pagina
-                    }
-                });
-            });
-            
+
             // Chiudi il modal
             closeModalBtn.addEventListener('click', function() {
                 modal.classList.remove('active');
                 document.body.style.overflow = 'auto'; // Ripristina lo scroll
             });
-            
+
             // Chiudi il modal anche cliccando fuori
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
@@ -574,49 +480,274 @@
                     document.body.style.overflow = 'auto';
                 }
             });
-            
+
             // Gestione quantità
             const decreaseBtn = document.getElementById('decreaseQty');
             const increaseBtn = document.getElementById('increaseQty');
             const quantityInput = document.getElementById('pizzaQuantity');
-            
+
             decreaseBtn.addEventListener('click', function() {
                 let qty = parseInt(quantityInput.value);
                 if (qty > 1) {
                     quantityInput.value = qty - 1;
                 }
             });
-            
+
             increaseBtn.addEventListener('click', function() {
                 let qty = parseInt(quantityInput.value);
-                if (qty < 10) {
+                if (qty < 10) { // Max 10, can be adjusted
                     quantityInput.value = qty + 1;
                 }
             });
-            
+
             // Opzioni pizza
             const optionItems = document.querySelectorAll('.option-item');
-            
             optionItems.forEach(item => {
                 item.addEventListener('click', function() {
-                    // Rimuovi active da tutte le opzioni
                     optionItems.forEach(opt => opt.classList.remove('active'));
-                    // Aggiungi active all'opzione cliccata
                     this.classList.add('active');
+                    // Future: Update price based on option
                 });
             });
-            
+
             // Aggiungi al carrello
             document.getElementById('addToCartBtn').addEventListener('click', function() {
                 const pizzaTitle = document.getElementById('modalPizzaTitle').textContent;
                 const quantity = document.getElementById('pizzaQuantity').value;
-                
+                // Future: Add selected options and actual pizza object to cart
                 alert(`${quantity}x ${pizzaTitle} aggiunta al carrello!`);
-                
                 modal.classList.remove('active');
                 document.body.style.overflow = 'auto';
             });
         });
+
+        function populatePizzaGrid(pizzeToDisplay, targetCategory = 'all') {
+            const allPizzaGrid = document.querySelector('#all .pizze-grid');
+            const classichePizzaGrid = document.querySelector('#classiche .pizze-grid');
+            const specialiPizzaGrid = document.querySelector('#speciali .pizze-grid');
+            const limitedPizzaGrid = document.querySelector('#limited .pizze-grid');
+            const veganePizzaGrid = document.querySelector('#vegane .pizze-grid');
+            const senzaGlutinePizzaGrid = document.querySelector('#senza-glutine .pizze-grid');
+
+            // Clear all grids initially if it's the first population or a full refresh
+            if (targetCategory === 'all' && pizzeToDisplay === allPizzasData) {
+                 [allPizzaGrid, classichePizzaGrid, specialiPizzaGrid, limitedPizzaGrid, veganePizzaGrid, senzaGlutinePizzaGrid].forEach(grid => {
+                    if(grid) grid.innerHTML = '';
+                 });
+            } else if (targetCategory !== 'all') {
+                // Clear only the specific category grid if filtering within a category view
+                const categoryGrid = document.querySelector(`#${targetCategory} .pizze-grid`);
+                if (categoryGrid) categoryGrid.innerHTML = '';
+            }
+
+
+            pizzeToDisplay.forEach(pizza => {
+                const pizzaCard = createPizzaCard(pizza);
+                
+                // Add to "Tutte le Pizze" grid if it's the 'all' category view or initial load
+                if (allPizzaGrid && (targetCategory === 'all' || pizzeToDisplay === allPizzasData)) {
+                     allPizzaGrid.appendChild(pizzaCard.cloneNode(true));
+                }
+
+                // Add to specific category grids if it's the initial load
+                 if (pizzeToDisplay === allPizzasData) {
+                    switch (pizza.category) {
+                        case 'classiche':
+                            if(classichePizzaGrid) classichePizzaGrid.appendChild(pizzaCard.cloneNode(true));
+                            break;
+                        case 'speciali':
+                            if(specialiPizzaGrid) specialiPizzaGrid.appendChild(pizzaCard.cloneNode(true));
+                            break;
+                        case 'limited':
+                            if(limitedPizzaGrid) limitedPizzaGrid.appendChild(pizzaCard.cloneNode(true));
+                            break;
+                        case 'vegane':
+                            if(veganePizzaGrid) veganePizzaGrid.appendChild(pizzaCard.cloneNode(true));
+                            break;
+                        case 'senza-glutine':
+                            if(senzaGlutinePizzaGrid) senzaGlutinePizzaGrid.appendChild(pizzaCard.cloneNode(true));
+                            break;
+                    }
+                } else if (targetCategory !== 'all') {
+                    // If filtering within a specific category view, only populate that category's grid
+                    const currentCategoryGrid = document.querySelector(`#${targetCategory} .pizze-grid`);
+                    if (currentCategoryGrid && pizza.category === targetCategory) {
+                        currentCategoryGrid.appendChild(pizzaCard.cloneNode(true));
+                    }
+                }
+            });
+            
+            setupOrderButtons(pizzeToDisplay); // Pass the currently displayed pizzas
+        }
+
+        function createPizzaCard(pizza) {
+            const div = document.createElement('div');
+            div.className = 'pizza-card';
+            div.setAttribute('data-category', pizza.category);
+            div.setAttribute('data-id', pizza.id); // Use Firestore ID
+            if (pizza.isNew) div.setAttribute('data-new', 'true');
+            if (pizza.isBestseller) div.setAttribute('data-bestseller', 'true');
+            if (pizza.isSuggested) div.setAttribute('data-suggested', 'true');
+            
+            let cardContent = `
+                <div class="pizza-image-container">
+                    <img src="${pizza.image || 'img/default-pizza.png'}" alt="${pizza.name}" class="pizza-image">
+                    <span class="pizza-badge">${pizza.badge || pizza.category}</span>`;
+            
+            if (pizza.isLimited) {
+                 cardContent += `<img src="img/limited-edition.png" class="pizza-limited" alt="Limited Edition">`;
+            }
+            if (pizza.largeTitle) {
+                cardContent += `<div class="pizza-name-large">${pizza.name}</div>`;
+            } else {
+                cardContent += `
+                    <div class="pizza-name-overlay">
+                        <h3 class="pizza-title">${pizza.name}</h3>
+                    </div>`;
+            }
+            
+            cardContent += `
+                </div>
+                <div class="pizza-content">
+                    <p class="pizza-description">${pizza.description}</p>
+                    <div class="pizza-footer">
+                        <div class="pizza-price">€ ${parseFloat(pizza.price).toFixed(2)}</div>
+                        <button class="btn btn-primary order-btn" data-pizza-id="${pizza.id}">Ordina</button>
+                    </div>
+                </div>`;
+            
+            div.innerHTML = cardContent;
+            return div;
+        }
+
+        function setupOrderButtons(pizzasForModal) {
+            document.querySelectorAll('.order-btn').forEach(btn => {
+                // Remove existing event listeners to prevent multiple triggers
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+
+                newBtn.addEventListener('click', function() {
+                    const pizzaId = this.getAttribute('data-pizza-id');
+                    openPizzaModal(pizzaId, pizzasForModal);
+                });
+            });
+        }
+
+        function setupMenuTabs(pizzas) {
+            const menuTabs = document.querySelectorAll('.menu-tab');
+            const menuCategories = document.querySelectorAll('.menu-category');
+            
+            menuTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    
+                    menuTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    menuCategories.forEach(cat => cat.classList.remove('active'));
+                    
+                    const activeCategoryElement = document.getElementById(category);
+                    if (activeCategoryElement) {
+                        activeCategoryElement.classList.add('active');
+                    }
+
+                    // Reset sub-filters to "Tutte"
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelector('.filter-btn[data-filter="all"]').classList.add('active');
+
+                    // Repopulate grid for the selected category
+                    if (category === 'all') {
+                        populatePizzaGrid(pizzas, 'all');
+                    } else {
+                        const filteredPizzas = pizzas.filter(p => p.category === category);
+                        populatePizzaGrid(filteredPizzas, category);
+                    }
+                });
+            });
+        }
+
+        function setupFilterButtons(pizzas) {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const filterType = this.getAttribute('data-filter');
+                    
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const activeMenuTab = document.querySelector('.menu-tab.active');
+                    const currentCategory = activeMenuTab ? activeMenuTab.getAttribute('data-category') : 'all';
+
+                    let pizzasToFilter = pizzas;
+                    if (currentCategory !== 'all') {
+                        pizzasToFilter = pizzas.filter(p => p.category === currentCategory);
+                    }
+
+                    let filteredPizzas = pizzasToFilter;
+                    if (filterType === 'new') {
+                        filteredPizzas = pizzasToFilter.filter(p => p.isNew);
+                    } else if (filterType === 'bestseller') {
+                        filteredPizzas = pizzasToFilter.filter(p => p.isBestseller);
+                    } else if (filterType === 'suggested') {
+                        filteredPizzas = pizzasToFilter.filter(p => p.isSuggested);
+                    }
+                    // 'all' filterType means show all from pizzasToFilter
+
+                    // Determine which grid to populate
+                    const targetGridCategory = currentCategory === 'all' ? 'all' : currentCategory;
+                    const gridToPopulate = document.querySelector(`#${targetGridCategory} .pizze-grid`);
+                    
+                    if (gridToPopulate) {
+                        gridToPopulate.innerHTML = ''; // Clear current grid
+                        filteredPizzas.forEach(pizza => {
+                            gridToPopulate.appendChild(createPizzaCard(pizza));
+                        });
+                        setupOrderButtons(filteredPizzas); // Re-attach order buttons for new cards
+                    } else if (currentCategory === 'all') { // Special case for "Tutte le Pizze" main grid
+                        const allGrid = document.querySelector('#all .pizze-grid');
+                        if(allGrid) {
+                            allGrid.innerHTML = '';
+                             filteredPizzas.forEach(pizza => {
+                                allGrid.appendChild(createPizzaCard(pizza));
+                            });
+                            setupOrderButtons(filteredPizzas);
+                        }
+                    }
+                });
+            });
+        }
+
+        function openPizzaModal(pizzaId, currentPizzaList) {
+            const pizza = (currentPizzaList || allPizzasData).find(p => p.id === pizzaId); // Search in current list or fallback to all
+            
+            if (pizza) {
+                document.getElementById('modalPizzaTitle').textContent = pizza.name;
+                document.getElementById('modalPizzaBadge').textContent = pizza.badge || pizza.category;
+                document.getElementById('modalPizzaDescription').textContent = pizza.description;
+                document.getElementById('modalPizzaPrice').textContent = `€ ${parseFloat(pizza.price).toFixed(2)}`;
+                document.getElementById('modalPizzaImage').style.backgroundImage = `url('${pizza.image || 'img/default-pizza.png'}')`;
+                
+                const ingredientsList = document.getElementById('modalIngredientsList');
+                ingredientsList.innerHTML = ''; // Clear previous ingredients
+                if (pizza.ingredients && Array.isArray(pizza.ingredients)) {
+                    pizza.ingredients.forEach(ingredient => {
+                        const ingItem = document.createElement('div');
+                        ingItem.className = 'ingredient-item';
+                        ingItem.textContent = ingredient;
+                        ingredientsList.appendChild(ingItem);
+                    });
+                } else {
+                    ingredientsList.innerHTML = '<div class="ingredient-item">Ingredienti non specificati.</div>';
+                }
+                
+                document.getElementById('pizzaModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                console.error("Pizza non trovata per il modal:", pizzaId);
+                alert("Dettagli pizza non disponibili.");
+            }
+        }
     </script>
 </body>
 </html>

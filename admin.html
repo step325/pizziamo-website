@@ -885,280 +885,271 @@
     <!-- Modal Backdrop -->
     <div class="modal-backdrop" id="modalBackdrop"></div>
     </div> <script type="module">
-        // Importa 'auth' e 'db' (se necessario per Firestore) da firebase-config.js
-        import { auth, db } from './js/firebase-config.js';
-        // Non importare protectAdminPages qui, è già gestita dallo script all'inizio del body.
+    import { auth, db } from './js/firebase-config.js';
+    import { loadPizzas, addPizza, updatePizza, deletePizza, getPizza, categoryMap } from './js/admin-pizze.js';
+    import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+    import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Riferimenti al DOM che potrebbero essere già stati gestiti da protectAdminPages
-            // per la visualizzazione iniziale, ma utili qui per altre interazioni.
-            const authLoader = document.getElementById('authLoader');
-            const adminContent = document.getElementById('adminContent');
+    document.addEventListener('DOMContentLoaded', async function() {
+        // Inizializza prima tutte le variabili degli elementi UI
+        const successAlert = document.getElementById('successAlert');
+        const successMessage = document.getElementById('successMessage');
+        const pizzaModal = document.getElementById('pizzaModal');
+        const modalBackdrop = document.getElementById('modalBackdrop');
+        const deleteModal = document.getElementById('deleteModal');
+        const carouselSuccessAlert = document.getElementById('carouselSuccessAlert');
+        const carouselSuccessMessage = document.getElementById('carouselSuccessMessage');
+        const valoriSuccessAlert = document.getElementById('valoriSuccessAlert');
+        const valoriSuccessMessage = document.getElementById('valoriSuccessMessage');
+        const ingredientiSuccessAlert = document.getElementById('ingredientiSuccessAlert');
+        const ingredientiSuccessMessage = document.getElementById('ingredientiSuccessMessage');
+        const localeSuccessAlert = document.getElementById('localeSuccessAlert');
+        const localeSuccessMessage = document.getElementById('localeSuccessMessage');
+        const storiaSuccessAlert = document.getElementById('storiaSuccessAlert');
+        const storiaSuccessMessage = document.getElementById('storiaSuccessMessage');
 
-            // Gestione logout
-            const logoutButton = document.querySelector('.admin-logout');
-            if (logoutButton) {
-                logoutButton.addEventListener('click', function(e) {
+        // Funzione per mostrare messaggi di successo o errore
+        function showSuccessAlert(messageText, alertElement = successAlert, messageElement = successMessage, type = "success") {
+            if (!alertElement || !messageElement) {
+                console.error("Elementi di alert non trovati:", alertElement, messageElement);
+                // Fallback to a simple alert if UI elements are missing
+                alert(`${type.toUpperCase()}: ${messageText}`);
+                return;
+            }
+            
+            // Ensure class manipulation is safe
+            let currentClasses = alertElement.className.split(' ');
+            currentClasses = currentClasses.filter(cls => cls !== 'alert-success' && cls !== 'alert-danger');
+            
+            if (type === "error") {
+                currentClasses.push('alert-danger');
+            } else {
+                currentClasses.push('alert-success');
+            }
+            alertElement.className = currentClasses.join(' ');
+            
+            messageElement.textContent = messageText;
+            alertElement.style.display = 'flex';
+            
+            // Nascondi dopo 3 secondi
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 3000);
+        }
+
+        // Riferimenti al DOM che potrebbero essere già stati gestiti da protectAdminPages
+        // per la visualizzazione iniziale, ma utili qui per altre interazioni.
+        const authLoader = document.getElementById('authLoader');
+        const adminContent = document.getElementById('adminContent');
+
+        // Gestione logout
+        const logoutButton = document.querySelector('.admin-logout');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                auth.signOut().then(() => {
+                    window.location.href = 'login.html';
+                }).catch(error => {
+                    console.error('Errore durante il logout:', error);
+                    alert('Errore durante il logout: ' + error.message); // Feedback utente
+                });
+            });
+        }
+        
+        // Toggle Sidebar
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const sidebar = document.querySelector('.admin-sidebar');
+        const mainContentEl = document.getElementById('adminMain'); // Rinominato per evitare conflitto con variabile adminContent
+        
+        if (toggleBtn && sidebar && mainContentEl) {
+            toggleBtn.addEventListener('click', function() {
+                sidebar.classList.toggle('collapsed');
+                mainContentEl.classList.toggle('expanded');
+            });
+        }
+        
+        // Navigation menu
+        const navLinks = document.querySelectorAll('.admin-menu-link');
+        const contentSections = document.querySelectorAll('.content-section');
+        
+        if (navLinks.length > 0 && contentSections.length > 0) {
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
                     e.preventDefault();
-                    auth.signOut().then(() => {
-                        window.location.href = 'login.html';
-                    }).catch(error => {
-                        console.error('Errore durante il logout:', error);
-                        alert('Errore durante il logout: ' + error.message); // Feedback utente
-                    });
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    contentSections.forEach(section => section.style.display = 'none');
+                    const targetSectionId = this.getAttribute('data-section');
+                    const targetSection = document.getElementById(targetSectionId);
+                    if (targetSection) {
+                        targetSection.style.display = 'block';
+                    } else {
+                        console.warn('Sezione non trovata:', targetSectionId);
+                    }
                 });
+            });
+            // Attiva la prima sezione di default se esiste
+            if (navLinks[0]) {
+                navLinks[0].click();
             }
-            
-            // Toggle Sidebar
-            const toggleBtn = document.getElementById('toggleSidebar');
-            const sidebar = document.querySelector('.admin-sidebar');
-            const mainContentEl = document.getElementById('adminMain'); // Rinominato per evitare conflitto con variabile adminContent
-            
-            if (toggleBtn && sidebar && mainContentEl) {
-                toggleBtn.addEventListener('click', function() {
-                    sidebar.classList.toggle('collapsed');
-                    mainContentEl.classList.toggle('expanded');
-                });
-            }
-            
-            // Navigation menu
-            const navLinks = document.querySelectorAll('.admin-menu-link');
-            const contentSections = document.querySelectorAll('.content-section');
-            
-            if (navLinks.length > 0 && contentSections.length > 0) {
-                navLinks.forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        navLinks.forEach(l => l.classList.remove('active'));
-                        this.classList.add('active');
-                        contentSections.forEach(section => section.style.display = 'none');
-                        const targetSectionId = this.getAttribute('data-section');
-                        const targetSection = document.getElementById(targetSectionId);
-                        if (targetSection) {
-                            targetSection.style.display = 'block';
-                        } else {
-                            console.warn('Sezione non trovata:', targetSectionId);
-                        }
-                    });
-                });
-                // Attiva la prima sezione di default se esiste
-                if (navLinks[0]) {
-                    navLinks[0].click();
-                }
-            }
-            
-            // Pizze esempio (in un'implementazione reale verrebbero dal database Firestore)
-            const pizze = [
-                {
-                    id: 1,
-                    name: 'Margherita',
-                    category: 'classiche',
-                    price: 7.50,
-                    description: 'La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d\'olio extravergine d\'oliva.',
-                    ingredients: ['Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Basilico fresco', 'Olio EVO'],
-                    image: 'img/pizza1.jpg',
-                    badge: 'Classica',
-                    status: 1,
-                    featured: true,
-                    largeTitle: false
-                },
-                {
-                    id: 2,
-                    name: 'Diavola',
-                    category: 'classiche',
-                    price: 8.50,
-                    description: 'Pomodoro San Marzano DOP, mozzarella fiordilatte e salame piccante. Per gli amanti del gusto deciso e leggermente piccante.',
-                    ingredients: ['Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Salame piccante'],
-                    image: 'img/pizza2.jpg',
-                    badge: 'Classica',
-                    status: 1,
-                    featured: false,
-                    largeTitle: false
-                },
-                {
-                    id: 3,
-                    name: 'Carbonara Revolution',
-                    category: 'speciali',
-                    price: 12.50,
-                    description: 'Con impasto Polesanissimo®, mozzarella, bacon, crema d\'uovo, cipolla, scaglie di pecorino, pepe, olio EVO.',
-                    ingredients: ['Impasto Polesanissimo®', 'Mozzarella', 'Bacon', 'Crema d\'uovo', 'Cipolla', 'Pecorino', 'Pepe', 'Olio EVO'],
-                    image: 'img/pizza3.jpg',
-                    badge: 'Specialità',
-                    status: 1,
-                    featured: true,
-                    largeTitle: true
-                },
-                {
-                    id: 4,
-                    name: 'Parma in Puglia',
-                    category: 'limited',
-                    price: 14.50,
-                    description: 'Gli ingredienti pregiati sono confezionati a parte per garantire la miglior esperienza. Con impasto Polesanissimo®, pomodoro, mozzarella di bufala, crudo di Montagnana 24 mesi e burrata, basilico, olio Evo.',
-                    ingredients: ['Impasto Polesanissimo®', 'Pomodoro', 'Mozzarella di bufala', 'Crudo di Montagnana 24 mesi', 'Burrata', 'Basilico', 'Olio EVO'],
-                    image: 'img/pizza4.jpg',
-                    badge: 'Limited Edition',
-                    status: 1,
-                    featured: true,
-                    largeTitle: true
-                },
-                {
-                    id: 5,
-                    name: 'Veg Garden',
-                    category: 'vegane',
-                    price: 10.50,
-                    description: 'Pomodoro San Marzano DOP, formaggio vegetale, zucchine, melanzane, peperoni, pomodorini e basilico fresco.',
-                    ingredients: ['Pomodoro San Marzano DOP', 'Formaggio vegetale', 'Zucchine', 'Melanzane', 'Peperoni', 'Pomodorini', 'Basilico fresco'],
-                    image: 'img/pizza5.jpg',
-                    badge: 'Vegana',
-                    status: 1,
-                    featured: false,
-                    largeTitle: false
-                },
-                {
-                    id: 6,
-                    name: 'Margherita Gluten Free',
-                    category: 'senza-glutine',
-                    price: 9.50,
-                    description: 'La classica pizza napoletana con pomodoro San Marzano DOP, mozzarella fiordilatte, basilico fresco e un filo d\'olio extravergine d\'oliva, su base senza glutine.',
-                    ingredients: ['Base senza glutine', 'Pomodoro San Marzano DOP', 'Mozzarella fiordilatte', 'Basilico fresco', 'Olio EVO'],
-                    image: 'img/pizza1.jpg',
-                    badge: 'Senza Glutine',
-                    status: 1,
-                    featured: false,
-                    largeTitle: false
-                }
-            ];
-            
-            // Categorie map per mostrare il nome leggibile
-            const categoryMap = {
-                'classiche': 'Classiche',
-                'speciali': 'Specialità',
-                'limited': 'Limited Edition',
-                'vegane': 'Vegane',
-                'senza-glutine': 'Senza Glutine'
-            };
-            
-            // Variabili per il modal e form
-            const pizzaModal = document.getElementById('pizzaModal');
-            const modalBackdrop = document.getElementById('modalBackdrop');
-            const addPizzaBtn = document.getElementById('addPizzaBtn');
-            const closeModal = document.getElementById('closeModal');
-            const cancelBtn = document.getElementById('cancelBtn');
-            const modalTitle = document.getElementById('modalTitle');
-            const pizzaForm = document.getElementById('pizzaForm');
-            
-            // Variabili per il delete modal
-            const deleteModal = document.getElementById('deleteModal');
-            const closeDeleteModal = document.getElementById('closeDeleteModal');
-            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-            const deletePizzaName = document.getElementById('deletePizzaName');
-            
-            // Variabili per il carousel modal
-            const carouselModal = document.getElementById('carouselModal');
-            const addCarouselBtn = document.getElementById('addCarouselBtn');
-            const closeCarouselModal = document.getElementById('closeCarouselModal');
-            const cancelCarouselBtn = document.getElementById('cancelCarouselBtn');
-            const carouselForm = document.getElementById('carouselForm');
-            
-            // Variabili per i modals dei valori
-            const valoreModal = document.getElementById('valoreModal');
-            const addValoreBtn = document.getElementById('addValoreBtn');
-            const closeValoreModal = document.getElementById('closeValoreModal');
-            const cancelValoreBtn = document.getElementById('cancelValoreBtn');
-            const valoreForm = document.getElementById('valoreForm');
-            
-            // Variabili per i modals degli ingredienti
-            const ingredienteModal = document.getElementById('ingredienteModal');
-            const addIngredienteBtn = document.getElementById('addIngredienteBtn');
-            const closeIngredienteModal = document.getElementById('closeIngredienteModal');
-            const cancelIngredienteBtn = document.getElementById('cancelIngredienteBtn');
-            const ingredienteForm = document.getElementById('ingredienteForm');
-            
-            // Variabili per i modals della galleria
-            const galleryModal = document.getElementById('galleryModal');
-            const addLocaleImageBtn = document.getElementById('addLocaleImageBtn');
-            const closeGalleryModal = document.getElementById('closeGalleryModal');
-            const cancelGalleryBtn = document.getElementById('cancelGalleryBtn');
-            const galleryForm = document.getElementById('galleryForm');
-            
-            // Variabili per il successo alert
-            const successAlert = document.getElementById('successAlert');
-            const successMessage = document.getElementById('successMessage');
-            const carouselSuccessAlert = document.getElementById('carouselSuccessAlert');
-            const carouselSuccessMessage = document.getElementById('carouselSuccessMessage');
-            const valoriSuccessAlert = document.getElementById('valoriSuccessAlert');
-            const valoriSuccessMessage = document.getElementById('valoriSuccessMessage');
-            const ingredientiSuccessAlert = document.getElementById('ingredientiSuccessAlert');
-            const ingredientiSuccessMessage = document.getElementById('ingredientiSuccessMessage');
-            const localeSuccessAlert = document.getElementById('localeSuccessAlert');
-            const localeSuccessMessage = document.getElementById('localeSuccessMessage');
-            const storiaSuccessAlert = document.getElementById('storiaSuccessAlert');
-            const storiaSuccessMessage = document.getElementById('storiaSuccessMessage');
-            
-            // Carica la tabella iniziale
+        }
+        
+        // Carica le pizze quando la pagina si carica
+        try {
+            const pizze = await loadPizzas();
             loadPizzaTable(pizze);
+        } catch (error) {
+            console.error("Errore durante il caricamento delle pizze:", error);
+            showSuccessAlert("Errore di accesso al database. Verifica la connessione e i permessi.", successAlert, successMessage, "error");
+        }
+
+        // Event listener per il form delle pizze
+        const pizzaForm = document.getElementById('pizzaForm');
+        pizzaForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            // Cerca pizze
-            document.getElementById('searchPizza').addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase();
-                const filteredPizze = pizze.filter(pizza => 
-                    pizza.name.toLowerCase().includes(searchTerm) || 
-                    pizza.description.toLowerCase().includes(searchTerm) ||
-                    pizza.ingredients.some(ing => ing.toLowerCase().includes(searchTerm))
-                );
-                loadPizzaTable(filteredPizze);
+            // Disabilita il pulsante di invio durante l'operazione
+            const saveBtn = document.getElementById('saveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Salvataggio in corso...';
+            
+            try {
+                // Raccogli ingredienti
+                const ingredientTags = document.querySelectorAll('#pizzaIngredients .tag');
+                const ingredients = Array.from(ingredientTags).map(tag => tag.textContent.trim().replace('×', ''));
+                
+                // Validazione ingredienti
+                if (ingredients.length === 0) {
+                    alert('Aggiungi almeno un ingrediente');
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Salva';
+                    return;
+                }
+                
+                // Raccogli dati dal form
+                const pizzaId = document.getElementById('pizzaId').value;
+                const pizzaData = {
+                    name: document.getElementById('pizzaName').value,
+                    price: parseFloat(document.getElementById('pizzaPrice').value),
+                    category: document.getElementById('pizzaCategory').value,
+                    description: document.getElementById('pizzaDescription').value,
+                    ingredients: ingredients,
+                    badge: document.getElementById('pizzaBadge').value,
+                    status: parseInt(document.getElementById('pizzaStatus').value),
+                    featured: document.getElementById('pizzaFeatured').checked,
+                    largeTitle: document.getElementById('pizzaLargeTitle').checked
+                };
+                
+                // Ottieni l'immagine
+                const fileInput = document.getElementById('pizzaImage');
+                const imageFile = fileInput.files.length > 0 ? fileInput.files[0] : null;
+                
+                // Se l'immagine non è cambiata e abbiamo già un'immagine, mantieni l'URL esistente
+                if (!imageFile && document.getElementById('previewImage').src && !document.getElementById('previewImage').src.includes('data:image')) {
+                    pizzaData.image = document.getElementById('previewImage').src;
+                }
+                
+                // Se è un inserimento o aggiornamento
+                if (pizzaId) {
+                    // È un aggiornamento
+                    await updatePizza(pizzaId, pizzaData, imageFile);
+                    showSuccessAlert('Pizza aggiornata con successo!');
+                } else {
+                    // È un inserimento
+                    await addPizza(pizzaData, imageFile);
+                    showSuccessAlert('Pizza aggiunta con successo!');
+                }
+                
+                // Aggiorna la tabella
+                const pizze = await loadPizzas();
+                loadPizzaTable(pizze);
+                
+                // Chiudi il modal
+                document.getElementById('pizzaModal').classList.remove('show');
+                document.getElementById('modalBackdrop').classList.remove('show');
+                
+            } catch (error) {
+                console.error("Errore durante il salvataggio della pizza:", error);
+                alert(`Errore durante il salvataggio: ${error.message}`);
+            } finally {
+                // Riabilita il pulsante di invio
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Salva';
+            }
+        });
+
+        // Event listener per eliminare una pizza
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+            const pizzaId = this.getAttribute('data-id');
+            
+            try {
+                await deletePizza(pizzaId);
+                
+                // Aggiorna la tabella
+                const pizze = await loadPizzas();
+                loadPizzaTable(pizze);
+                
+                // Mostra messaggio di successo
+                showSuccessAlert('Pizza eliminata con successo!');
+            } catch (error) {
+                console.error("Errore durante l'eliminazione della pizza:", error);
+                alert(`Errore durante l'eliminazione: ${error.message}`);
+            }
+            
+            // Chiudi il modal
+            document.getElementById('deleteModal').classList.remove('show');
+            document.getElementById('modalBackdrop').classList.remove('show');
+        });
+        
+        // Funzione per caricare la tabella delle pizze
+        function loadPizzaTable(data) {
+            const tableBody = document.getElementById('pizzaTableBody');
+            tableBody.innerHTML = '';
+            
+            data.forEach(pizza => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><img src="${pizza.image}" alt="${pizza.name}" class="img-thumbnail"></td>
+                    <td>${pizza.name}</td>
+                    <td>${categoryMap[pizza.category]}</td>
+                    <td>€ ${pizza.price.toFixed(2)}</td>
+                    <td>${pizza.status === 1 ? '<span class="badge badge-success">Attiva</span>' : '<span class="badge badge-danger">Disattiva</span>'}</td>
+                    <td class="table-actions">
+                        <button class="btn btn-sm btn-primary edit-btn" data-id="${pizza.id}">✏️</button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${pizza.id}" data-name="${pizza.name}">🗑️</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
             });
             
-            // Funzione per caricare la tabella delle pizze
-            function loadPizzaTable(data) {
-                const tableBody = document.getElementById('pizzaTableBody');
-                tableBody.innerHTML = '';
-                
-                data.forEach(pizza => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td><img src="${pizza.image}" alt="${pizza.name}" class="img-thumbnail"></td>
-                        <td>${pizza.name}</td>
-                        <td>${categoryMap[pizza.category]}</td>
-                        <td>€ ${pizza.price.toFixed(2)}</td>
-                        <td>${pizza.status === 1 ? '<span class="badge badge-success">Attiva</span>' : '<span class="badge badge-danger">Disattiva</span>'}</td>
-                        <td class="table-actions">
-                            <button class="btn btn-sm btn-primary edit-btn" data-id="${pizza.id}">✏️</button>
-                            <button class="btn btn-sm btn-danger delete-btn" data-id="${pizza.id}" data-name="${pizza.name}">🗑️</button>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
+            // Aggiungi event listener ai pulsanti dopo averli creati
+            addButtonEventListeners();
+        }
+        
+        // Funzione per aggiungere event listener ai pulsanti
+        function addButtonEventListeners() {
+            // Edit buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const pizzaId = this.getAttribute('data-id');
+                    openEditModal(pizzaId);
                 });
-                
-                // Aggiungi event listener ai pulsanti dopo averli creati
-                addButtonEventListeners();
-            }
+            });
             
-            // Funzione per aggiungere event listener ai pulsanti
-            function addButtonEventListeners() {
-                // Edit buttons
-                document.querySelectorAll('.edit-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const pizzaId = this.getAttribute('data-id');
-                        openEditModal(pizzaId);
-                    });
+            // Delete buttons
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const pizzaId = this.getAttribute('data-id');
+                    const pizzaName = this.getAttribute('data-name');
+                    openDeleteModal(pizzaId, pizzaName);
                 });
-                
-                // Delete buttons
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const pizzaId = this.getAttribute('data-id');
-                        const pizzaName = this.getAttribute('data-name');
-                        openDeleteModal(pizzaId, pizzaName);
-                    });
-                });
-            }
-            
-            // Funzione per aprire il modal di modifica
-            function openEditModal(pizzaId) {
-                const pizza = pizze.find(p => p.id == pizzaId);
-                if (!pizza) return;
+            });
+        }
+        
+        // Funzione per aprire il modal di modifica
+        async function openEditModal(pizzaId) {
+            try {
+                const pizza = await getPizza(pizzaId);
                 
                 // Imposta i valori del form
                 document.getElementById('pizzaId').value = pizza.id;
@@ -1173,64 +1164,131 @@
                 
                 // Popola ingredienti
                 const tagsInput = document.getElementById('pizzaIngredients');
-                tagsInput.innerHTML = '';
+                tagsInput.innerHTML = '<input type="text" placeholder="Aggiungi ingrediente e premi Enter" id="ingredientInput">'; // Pulisci i tag esistenti e ripristina l'input
+                const ingredientInputRef = document.getElementById('ingredientInput'); 
                 pizza.ingredients.forEach(ingredient => {
-                    addIngredientTag(ingredient);
+                    addIngredientTag(ingredient); 
                 });
-                tagsInput.appendChild(document.getElementById('ingredientInput'));
+                // L'input è già all'interno di tagsInput, non serve ri-appendere se lo si ricrea come sopra.
+                // Se non si ricrea l'input, allora serve: tagsInput.appendChild(ingredientInputRef);
                 
                 // Mostra anteprima immagine
-                document.getElementById('previewImage').src = pizza.image;
-                document.getElementById('imagePreview').style.display = 'flex';
+                const previewImgElement = document.getElementById('previewImage');
+                const imagePreviewContainer = document.getElementById('imagePreview');
+                if (pizza.image) {
+                    previewImgElement.src = pizza.image;
+                    imagePreviewContainer.style.display = 'flex';
+                } else {
+                    previewImgElement.src = '';
+                    imagePreviewContainer.style.display = 'none';
+                }
                 
                 // Cambia il titolo del modal
-                modalTitle.textContent = 'Modifica Pizza';
+                document.getElementById('modalTitle').textContent = 'Modifica Pizza';
                 
                 // Mostra il modal
                 pizzaModal.classList.add('show');
                 modalBackdrop.classList.add('show');
+            } catch (error) {
+                console.error("Errore durante il recupero della pizza:", error);
+                alert(`Errore durante il recupero della pizza: ${error.message}`);
             }
+        }
+
+        // Variabili per il modal e form (alcune potrebbero essere già definite sopra)
+        // const pizzaModal = document.getElementById('pizzaModal'); // Già definito
+        // const modalBackdrop = document.getElementById('modalBackdrop'); // Già definito
+        const addPizzaBtn = document.getElementById('addPizzaBtn');
+        const closeModal = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const modalTitle = document.getElementById('modalTitle');
+        // const pizzaForm = document.getElementById('pizzaForm'); // Già definito
+
+        // Variabili per il delete modal
+        // const deleteModal = document.getElementById('deleteModal'); // Già definito
+        const closeDeleteModal = document.getElementById('closeDeleteModal');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn'); // Già definito
+        const deletePizzaName = document.getElementById('deletePizzaName');
+
+        // Variabili per il carousel modal
+        const carouselModal = document.getElementById('carouselModal');
+        const addCarouselBtn = document.getElementById('addCarouselBtn');
+        const closeCarouselModal = document.getElementById('closeCarouselModal');
+        const cancelCarouselBtn = document.getElementById('cancelCarouselBtn');
+        const carouselForm = document.getElementById('carouselForm');
+
+        // Variabili per i modals dei valori
+        const valoreModal = document.getElementById('valoreModal');
+        const addValoreBtn = document.getElementById('addValoreBtn');
+        const closeValoreModal = document.getElementById('closeValoreModal');
+        const cancelValoreBtn = document.getElementById('cancelValoreBtn');
+        const valoreForm = document.getElementById('valoreForm');
+
+        // Variabili per i modals degli ingredienti
+        const ingredienteModal = document.getElementById('ingredienteModal');
+        const addIngredienteBtn = document.getElementById('addIngredienteBtn');
+        const closeIngredienteModal = document.getElementById('closeIngredienteModal');
+        const cancelIngredienteBtn = document.getElementById('cancelIngredienteBtn');
+        const ingredienteForm = document.getElementById('ingredienteForm');
+
+        // Variabili per i modals della galleria
+        const galleryModal = document.getElementById('galleryModal');
+        const addLocaleImageBtn = document.getElementById('addLocaleImageBtn');
+        const closeGalleryModal = document.getElementById('closeGalleryModal');
+        const cancelGalleryBtn = document.getElementById('cancelGalleryBtn');
+        const galleryForm = document.getElementById('galleryForm');
+
+        // Cerca pizze
+        document.getElementById('searchPizza').addEventListener('input', async function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const pizze = await loadPizzas(); // Ricarica le pizze per il filtro
+            const filteredPizze = pizze.filter(pizza => 
+                pizza.name.toLowerCase().includes(searchTerm) || 
+                pizza.description.toLowerCase().includes(searchTerm) ||
+                (pizza.ingredients && pizza.ingredients.some(ing => ing.toLowerCase().includes(searchTerm)))
+            );
+            loadPizzaTable(filteredPizze);
+        });
+
+        // Funzione per aprire il modal di eliminazione
+        function openDeleteModal(pizzaId, pizzaNameText) {
+            // Salva l'ID della pizza da eliminare
+            confirmDeleteBtn.setAttribute('data-id', pizzaId);
             
-            // Funzione per aprire il modal di eliminazione
-            function openDeleteModal(pizzaId, pizzaName) {
-                // Salva l'ID della pizza da eliminare
-                document.getElementById('confirmDeleteBtn').setAttribute('data-id', pizzaId);
-                
-                // Imposta il nome della pizza
-                deletePizzaName.textContent = pizzaName;
-                
-                // Mostra il modal
-                deleteModal.classList.add('show');
-                modalBackdrop.classList.add('show');
-            }
+            // Imposta il nome della pizza
+            deletePizzaName.textContent = pizzaNameText;
             
-            // Funzione per mostrare il successo alert
-            function showSuccessAlert(message, element = successAlert, messageElement = successMessage) {
-                messageElement.textContent = message;
-                element.style.display = 'flex';
-                
-                // Nascondi dopo 3 secondi
-                setTimeout(() => {
-                    element.style.display = 'none';
-                }, 3000);
-            }
-            
-            // Gestione degli ingredienti come tag
-            const ingredientInput = document.getElementById('ingredientInput');
-            
-            ingredientInput.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const value = this.value.trim();
-                    if (value) {
-                        addIngredientTag(value);
-                        this.value = '';
-                    }
+            // Mostra il modal
+            deleteModal.classList.add('show');
+            modalBackdrop.classList.add('show');
+        }
+
+        // Funzione per mostrare il successo alert - spostata all'inizio del DOMContentLoaded
+
+        // Gestione degli ingredienti come tag
+        const ingredientInput = document.getElementById('ingredientInput');
+        
+        ingredientInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const value = this.value.trim();
+                if (value) {
+                    addIngredientTag(value);
+                    this.value = '';
                 }
-            });
+            }
+        });
+        
+        function addIngredientTag(text) {
+            const tagsInputContainer = document.getElementById('pizzaIngredients');
+            const currentInput = document.getElementById('ingredientInput'); // L'input field
             
-            function addIngredientTag(text) {
-            const tagsInput = document.getElementById('pizzaIngredients');
+            if (!currentInput) {
+                console.error("Input field 'ingredientInput' non trovato dentro 'pizzaIngredients'");
+                return;
+            }
+
             const tag = document.createElement('div');
             tag.className = 'tag';
             tag.innerHTML = `
@@ -1239,10 +1297,11 @@
             `;
             
             tag.querySelector('.tag-remove').addEventListener('click', function() {
-                tagsInput.removeChild(tag);
+                tagsInputContainer.removeChild(tag);
             });
             
-            tagsInput.insertBefore(tag, ingredientInput);
+            // Inserisci il tag prima dell'input field
+            tagsInputContainer.insertBefore(tag, currentInput);
         }
 
         // Gestione dell'upload immagine per le pizze
@@ -1300,7 +1359,8 @@
         }
 
         removeImageBtn.addEventListener('click', function() {
-            fileInput.value = '';
+            fileInput.value = ''; // Resetta l'input file
+            document.getElementById('previewImage').src = ''; // Rimuovi l'URL dall'img src
             document.getElementById('imagePreview').style.display = 'none';
         });
 
@@ -1348,14 +1408,38 @@
         addPizzaBtn.addEventListener('click', function() {
             // Reset form
             pizzaForm.reset();
+            document.getElementById('pizzaId').value = ''; // Assicurati che l'ID sia vuoto per un nuovo inserimento
             
             // Pulisci gli ingredienti
-            const tagsInput = document.getElementById('pizzaIngredients');
-            tagsInput.innerHTML = '';
-            tagsInput.appendChild(ingredientInput);
+            const tagsInputContainer = document.getElementById('pizzaIngredients');
+            const currentInput = document.getElementById('ingredientInput');
+            tagsInputContainer.innerHTML = ''; // Rimuovi tutti i figli (tag)
+            // Ricrea l'input field se non esiste più o è stato rimosso
+            if (!tagsInputContainer.querySelector('#ingredientInput')) {
+                const newInput = document.createElement('input');
+                newInput.type = 'text';
+                newInput.placeholder = 'Aggiungi ingrediente e premi Enter';
+                newInput.id = 'ingredientInput';
+                tagsInputContainer.appendChild(newInput);
+                // Riassegna l'event listener se l'input è stato ricreato
+                newInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const value = this.value.trim();
+                        if (value) {
+                            addIngredientTag(value);
+                            this.value = '';
+                        }
+                    }
+                });
+            } else {
+                 currentInput.value = ''; // Pulisci il valore dell'input esistente
+            }
             
-            // Nascondi anteprima immagine
+            // Nascondi anteprima immagine e resetta src
+            document.getElementById('previewImage').src = '';
             document.getElementById('imagePreview').style.display = 'none';
+            fileInput.value = ''; // Resetta l'input file
             
             // Cambia il titolo del modal
             modalTitle.textContent = 'Aggiungi Pizza';
@@ -1381,89 +1465,6 @@
         });
 
         cancelDeleteBtn.addEventListener('click', function() {
-            deleteModal.classList.remove('show');
-            modalBackdrop.classList.remove('show');
-        });
-
-        // Submit del form pizze
-        pizzaForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Raccogli ingredienti
-            const ingredientTags = document.querySelectorAll('#pizzaIngredients .tag');
-            const ingredients = Array.from(ingredientTags).map(tag => tag.textContent.trim().replace('×', ''));
-            
-            // Validazione ingredienti
-            if (ingredients.length === 0) {
-                alert('Aggiungi almeno un ingrediente');
-                return;
-            }
-            
-            // Validazione immagine
-            const imagePreview = document.getElementById('imagePreview');
-            if (imagePreview.style.display === 'none') {
-                alert('Seleziona un\'immagine per la pizza');
-                return;
-            }
-            
-            // Raccogli dati dal form
-            const pizzaId = document.getElementById('pizzaId').value;
-            const pizzaData = {
-                name: document.getElementById('pizzaName').value,
-                price: parseFloat(document.getElementById('pizzaPrice').value),
-                category: document.getElementById('pizzaCategory').value,
-                description: document.getElementById('pizzaDescription').value,
-                ingredients: ingredients,
-                image: document.getElementById('previewImage').src,
-                badge: document.getElementById('pizzaBadge').value,
-                status: parseInt(document.getElementById('pizzaStatus').value),
-                featured: document.getElementById('pizzaFeatured').checked,
-                largeTitle: document.getElementById('pizzaLargeTitle').checked
-            };
-            
-            // Se abbiamo un ID, è una modifica
-            if (pizzaId) {
-                // Trova l'indice della pizza
-                const index = pizze.findIndex(p => p.id == pizzaId);
-                if (index !== -1) {
-                    // Mantiene l'ID esistente
-                    pizzaData.id = parseInt(pizzaId);
-                    pizze[index] = pizzaData;
-                    showSuccessAlert('Pizza modificata con successo!');
-                }
-            } else {
-                // È un inserimento
-                pizzaData.id = pizze.length > 0 ? Math.max(...pizze.map(p => p.id)) + 1 : 1;
-                pizze.push(pizzaData);
-                showSuccessAlert('Pizza aggiunta con successo!');
-            }
-            
-            // Aggiorna la tabella
-            loadPizzaTable(pizze);
-            
-            // Chiudi il modal
-            pizzaModal.classList.remove('show');
-            modalBackdrop.classList.remove('show');
-        });
-
-        // Elimina pizza
-        confirmDeleteBtn.addEventListener('click', function() {
-            const pizzaId = this.getAttribute('data-id');
-            
-            // Trova l'indice della pizza
-            const index = pizze.findIndex(p => p.id == pizzaId);
-            if (index !== -1) {
-                // Rimuovi la pizza
-                pizze.splice(index, 1);
-                
-                // Aggiorna la tabella
-                loadPizzaTable(pizze);
-                
-                // Mostra messaggio di successo
-                showSuccessAlert('Pizza eliminata con successo!');
-            }
-            
-            // Chiudi il modal
             deleteModal.classList.remove('show');
             modalBackdrop.classList.remove('show');
         });
@@ -2127,6 +2128,7 @@
             galleryModal.classList.remove('show');
             modalBackdrop.classList.remove('show');
         });
+        // Continua con il resto del codice per la gestione delle pizze...
     });
     </script>
 </body>
