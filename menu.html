@@ -456,10 +456,12 @@
                 
             } catch (error) {
                 console.error("Errore durante il caricamento delle pizze:", error);
-                // Optionally, display a user-friendly message on the page
+                // Mostra un messaggio utente-friendly
                 const allPizzaGrid = document.querySelector('#all .pizze-grid');
                 if (allPizzaGrid) {
-                    allPizzaGrid.innerHTML = '<p class="error-message">Errore nel caricamento del menù. Riprova più tardi.</p>';
+                    allPizzaGrid.innerHTML = '<div style="text-align:center; width:100%; padding:20px;">'+
+                                             '<p>Impossibile caricare il menu. Riprova più tardi.</p>'+
+                                             '</div>';
                 }
             }
 
@@ -679,10 +681,14 @@
                     const activeMenuTab = document.querySelector('.menu-tab.active');
                     const currentCategory = activeMenuTab ? activeMenuTab.getAttribute('data-category') : 'all';
 
-                    let pizzasToFilter = pizzas;
+                    let pizzasToFilter = pizzas; // Start with all pizzas (or allPizzasData if pizzas is a subset)
+                                        // If we are in a specific category tab, filter from allPizzasData based on that category first
                     if (currentCategory !== 'all') {
-                        pizzasToFilter = pizzas.filter(p => p.category === currentCategory);
+                        pizzasToFilter = allPizzasData.filter(p => p.category === currentCategory);
+                    } else {
+                        pizzasToFilter = allPizzasData; // Ensure we are filtering from the complete list for 'all' tab
                     }
+
 
                     let filteredPizzas = pizzasToFilter;
                     if (filterType === 'new') {
