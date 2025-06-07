@@ -1,0 +1,148 @@
+FIREBASE FIRESTORE SECURITY RULES
+=================================
+
+To fix the Firebase permission-denied errors, you need to update your Firestore Security Rules in the Firebase Console.
+
+1. Go to Firebase Console (https://console.firebase.google.com/)
+2. Select your project
+3. Go to Firestore Database
+4. Click on "Rules" tab
+5. Replace the existing rules with the following:
+
+---BEGIN RULES---
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow public read access to carousel data
+    match /carousel/{document} {
+      allow read: if true;
+      allow write: if request.auth != null; // Only authenticated users can write
+    }
+    
+    // Allow public read access to pizze data
+    match /pizze/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Allow public read access to valori data
+    match /valori/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Allow public read access to ingredienti data
+    match /ingredienti/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Allow public read access to gallery data
+    match /gallery/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+      // Allow public read access to settings data
+    match /settings/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Allow public read access to team data
+    match /team/{document} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    
+    // Default rule - deny access to other collections
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+---END RULES---
+
+FIREBASE STORAGE SECURITY RULES
+================================
+
+You also need to configure Firebase Storage rules to allow image uploads.
+
+1. Go to Firebase Console (https://console.firebase.google.com/)
+2. Select your project
+3. Go to Storage
+4. Click on "Rules" tab
+5. Replace the existing rules with the following:
+
+---BEGIN STORAGE RULES---
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Allow authenticated users to upload images to carousel folder
+    match /carousel/{filename} {
+      allow read: if true; // Anyone can read carousel images
+      allow write: if request.auth != null; // Only authenticated users can upload
+    }
+    
+    // Allow authenticated users to upload images to pizze folder
+    match /pizze/{filename} {
+      allow read: if true; // Anyone can read pizza images
+      allow write: if request.auth != null; // Only authenticated users can upload
+    }
+    
+    // Allow authenticated users to upload images to gallery folder
+    match /gallery/{filename} {
+      allow read: if true; // Anyone can read gallery images
+      allow write: if request.auth != null; // Only authenticated users can upload
+    }
+    
+    // Allow authenticated users to upload images to ingredienti folder
+    match /ingredienti/{filename} {
+      allow read: if true; // Anyone can read ingredient images
+      allow write: if request.auth != null; // Only authenticated users can upload
+    }
+    
+    // Default rule - deny access to other folders
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null; // Only authenticated users for other folders
+    }
+  }
+}
+---END STORAGE RULES---
+
+6. Click "Publish" to apply the rules
+
+WHAT THESE RULES DO:
+===================
+
+FIRESTORE RULES:
+- Allow anyone to READ data from: carousel, pizze, valori, ingredienti, gallery, settings, team
+- Only authenticated users can WRITE/MODIFY data
+- All other collections require authentication for both read and write
+
+STORAGE RULES:
+- Allow anyone to READ images from: carousel, pizze, gallery, ingredienti folders
+- Only authenticated users can UPLOAD images
+- All other folders require authentication for both read and write
+
+COMPLETE SETUP STEPS:
+====================
+1. Apply FIRESTORE rules (Firestore Database → Rules)
+2. Apply STORAGE rules (Storage → Rules)
+3. Run the import-carousel-data.html script to populate the database
+4. Test admin panel carousel section
+
+TESTING:
+========
+After applying BOTH sets of rules:
+1. Open your website
+2. Check the browser console (F12)
+3. You should see no more "permission-denied" errors
+4. The carousel and other Firebase content should load properly
+5. Admin panel should be able to upload images without storage/unauthorized errors
+
+FALLBACK BEHAVIOR:
+==================
+If Firebase is unavailable or has issues, your website will gracefully fall back to:
+- Static HTML carousel slides on index.html
+- Static HTML content on chi-siamo.html
+- This ensures your website always works, even without Firebase

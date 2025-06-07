@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrazione Dati Team - PIZZIAMO</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #e74c3c;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .status.info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            color: #1565c0;
+        }
+        .status.success {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+        .status.error {
+            background: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+        .btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+            display: block;
+            width: 100%;
+        }
+        .btn:hover {
+            background: #c0392b;
+        }
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .team-preview {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .team-member {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: white;
+        }
+        .team-member h4 {
+            margin: 0 0 5px 0;
+            color: #e74c3c;
+        }
+        .team-member p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍕 Migrazione Dati Team - PIZZIAMO</h1>
+        
+        <div class="status info">
+            <strong>Informazioni:</strong><br>
+            Questo script migrerà i dati del team dalle pagine HTML statiche al database Firebase.
+            I dati verranno estratti dalle sezioni hardcoded esistenti.
+        </div>
+
+        <button id="previewBtn" class="btn">📋 Anteprima Dati da Migrare</button>
+        <button id="migrateBtn" class="btn" disabled>🚀 Avvia Migrazione</button>
+        
+        <div id="status"></div>
+        <div id="preview" class="team-preview" style="display: none;"></div>
+    </div>
+
+    <script type="module">
+        import { auth, db } from './js/firebase-config.js';
+        import { 
+            collection, 
+            doc, 
+            setDoc, 
+            getDocs, 
+            addDoc 
+        } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+        // Dati del team estratti dalle pagine HTML esistenti
+        const teamData = {
+            settings: {
+                titolo: "Il Nostro Team",
+                introduzione: "Il nostro team di professionisti appassionati lavora ogni giorno per offrirti un'esperienza culinaria indimenticabile.",
+                mostraSezione: true
+            },
+            members: [
+                {
+                    nome: "Marco Rossi",
+                    ruolo: "Head Chef",
+                    descrizione: "Con oltre 15 anni di esperienza, Marco guida la nostra cucina con passione e creatività, creando pizze che raccontano la tradizione italiana.",
+                    immagine: "./img/pizzaiolo1.jpg",
+                    ordine: 1,
+                    stato: "attivo",
+                    social: {
+                        instagram: "",
+                        facebook: "",
+                        linkedin: ""
+                    }
+                },
+                {
+                    nome: "Giulia Bianchi",
+                    ruolo: "Sous Chef",
+                    descrizione: "Specialista in impasti e tecniche di lievitazione, Giulia porta innovazione rispettando la tradizione della pizza napoletana.",
+                    immagine: "./img/pizzaiolo2.jpg",
+                    ordine: 2,
+                    stato: "attivo",
+                    social: {
+                        instagram: "",
+                        facebook: "",
+                        linkedin: ""
+                    }
+                },
+                {
+                    nome: "Antonio Verde",
+                    ruolo: "Pizza Chef",
+                    descrizione: "Maestro della cottura nel forno a legna, Antonio sa creare la pizza perfetta con la giusta croccantezza e morbidezza.",
+                    immagine: "./img/pizza.jpg",
+                    ordine: 3,
+                    stato: "attivo",
+                    social: {
+                        instagram: "",
+                        facebook: "",
+                        linkedin: ""
+                    }
+                },
+                {
+                    nome: "Sara Neri",
+                    ruolo: "Responsabile Sala",
+                    descrizione: "Con il suo sorriso e la sua professionalità, Sara coordina il servizio in sala garantendo un'esperienza perfetta per ogni cliente.",
+                    immagine: "./img/pizza1.jpg",
+                    ordine: 4,
+                    stato: "attivo",
+                    social: {
+                        instagram: "",
+                        facebook: "",
+                        linkedin: ""
+                    }
+                }
+            ]
+        };
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function showPreview() {
+            const previewDiv = document.getElementById('preview');
+            const migrateBtn = document.getElementById('migrateBtn');
+            
+            let html = '<h3>📋 Anteprima Dati da Migrare</h3>';
+            html += `<h4>Impostazioni Sezione:</h4>`;
+            html += `<p><strong>Titolo:</strong> ${teamData.settings.titolo}</p>`;
+            html += `<p><strong>Introduzione:</strong> ${teamData.settings.introduzione}</p>`;
+            html += `<p><strong>Sezione Attiva:</strong> ${teamData.settings.mostraSezione ? 'Sì' : 'No'}</p>`;
+            
+            html += '<h4>Membri del Team:</h4>';
+            teamData.members.forEach((member, index) => {
+                html += `
+                    <div class="team-member">
+                        <h4>${member.nome}</h4>
+                        <p><strong>Ruolo:</strong> ${member.ruolo}</p>
+                        <p><strong>Descrizione:</strong> ${member.descrizione}</p>
+                        <p><strong>Immagine:</strong> ${member.immagine}</p>
+                        <p><strong>Ordine:</strong> ${member.ordine}</p>
+                        <p><strong>Stato:</strong> ${member.stato}</p>
+                    </div>
+                `;
+            });
+            
+            previewDiv.innerHTML = html;
+            previewDiv.style.display = 'block';
+            migrateBtn.disabled = false;
+        }
+
+        async function migrateTeamData() {
+            const migrateBtn = document.getElementById('migrateBtn');
+            migrateBtn.disabled = true;
+            migrateBtn.textContent = '⏳ Migrazione in corso...';
+            
+            try {
+                showStatus('🔄 Avvio migrazione dati del team...', 'info');
+                
+                // 1. Salva le impostazioni del team
+                showStatus('📝 Salvataggio impostazioni del team...', 'info');
+                await setDoc(doc(db, 'settings', 'team'), teamData.settings);
+                
+                // 2. Salva i membri del team
+                showStatus('👥 Salvataggio membri del team...', 'info');
+                const teamCollection = collection(db, 'team');
+                
+                for (const member of teamData.members) {
+                    await addDoc(teamCollection, {
+                        ...member,
+                        dataCreazione: new Date(),
+                        dataModifica: new Date()
+                    });
+                }
+                
+                showStatus(`✅ Migrazione completata con successo!<br>
+                    - Impostazioni team salvate<br>
+                    - ${teamData.members.length} membri del team migrati<br><br>
+                    Ora puoi gestire il team dal pannello di amministrazione.`, 'success');
+                
+                migrateBtn.textContent = '✅ Migrazione Completata';
+                
+            } catch (error) {
+                console.error('Errore durante la migrazione:', error);
+                showStatus(`❌ Errore durante la migrazione:<br>${error.message}`, 'error');
+                migrateBtn.disabled = false;
+                migrateBtn.textContent = '🚀 Riprova Migrazione';
+            }
+        }
+
+        // Event listeners
+        document.getElementById('previewBtn').addEventListener('click', showPreview);
+        document.getElementById('migrateBtn').addEventListener('click', migrateTeamData);
+
+        // Controllo autenticazione
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                showStatus('❌ Devi essere autenticato per eseguire la migrazione. <a href="login.html">Accedi qui</a>', 'error');
+                document.getElementById('previewBtn').disabled = true;
+                document.getElementById('migrateBtn').disabled = true;
+            } else {
+                showStatus(`👋 Benvenuto ${user.email}! Puoi procedere con la migrazione.`, 'success');
+            }
+        });
+    </script>
+</body>
+</html>

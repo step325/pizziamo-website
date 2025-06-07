@@ -6,11 +6,7 @@
     <title>Pannello Admin - PIZZIAMO?!</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/admin.css">
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script type="module" src="js/firebase-config.js"></script>
+    <link rel="stylesheet" href="css/admin.css">    <script type="module" src="js/firebase-config.js"></script>
     <style>
         /* Loader styles */
         .auth-loader {
@@ -43,15 +39,1280 @@
         .admin-content { display: none; /* Nascosto finché l'auth non è verificata */ }
     </style>
 </head>
-<body>
-    <script type="module">
-        import { protectAdminPages } from './js/firebase-config.js';
+<body>    <script type="module">        import { auth, db } from './js/firebase-config.js';
+        import { loadPizzas, addPizza, updatePizza, deletePizza, getPizza, categoryMap } from './js/admin-pizze.js';
+        import { loadCarouselSlides, addCarouselSlide, updateCarouselSlide, deleteCarouselSlide, getCarouselSlide, updateCarouselOrder } from './js/admin-carousel.js';
+        import { loadStoria, saveStoria } from './js/admin-storia.js';
+        import { loadValori, addValore, updateValore, deleteValore, getValore, updateValoriOrder } from './js/admin-valori.js';
+        import { loadIngredientiSettings, saveIngredientiSettings, loadIngredienti, addIngrediente, updateIngrediente, deleteIngrediente } from './js/admin-ingredienti.js';
+        import { loadLocaleSettings, saveLocaleSettings, loadGallery, addGalleryImage, updateGalleryImage, deleteGalleryImage, updateGalleryOrder } from './js/admin-locale.js';
+        import { loadTeam, loadTeamSettings, saveTeamSettings, addTeamMember, updateTeamMember, deleteTeamMember } from './js/admin-team.js';
+        import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+        import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-storage.js";
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // protectAdminPages ora dovrebbe gestire il loader, il contenuto
-            // e l'aggiornamento dell'avatar/email come definito in firebase-config.js
-            protectAdminPages();
+        // Gestione dell'autenticazione
+        auth.onAuthStateChanged(async (user) => {
+            const authLoader = document.querySelector('.auth-loader');
+            const adminContent = document.querySelector('.admin-content');
+            
+            if (user) {
+                console.log("Utente autenticato:", user.email);
+                // Nascondi il loader e mostra il contenuto
+                authLoader.style.display = 'none';
+                adminContent.style.display = 'block';
+                
+                // Inizializza il pannello admin
+                await initializeAdminPanel();
+            } else {
+                console.log("Utente non autenticato, reindirizzamento al login");
+                window.location.href = 'login.html';
+            }
         });
+
+        async function initializeAdminPanel() {
+            // Inizializza prima tutte le variabili degli elementi UI
+            const successAlert = document.getElementById('successAlert');
+            const successMessage = document.getElementById('successMessage');
+            const pizzaModal = document.getElementById('pizzaModal');
+            const modalBackdrop = document.getElementById('modalBackdrop');
+            const deleteModal = document.getElementById('deleteModal');
+            const carouselSuccessAlert = document.getElementById('carouselSuccessAlert');
+            const carouselSuccessMessage = document.getElementById('carouselSuccessMessage');
+            const valoriSuccessAlert = document.getElementById('valoriSuccessAlert');
+            const valoriSuccessMessage = document.getElementById('valoriSuccessMessage');
+            const ingredientiSuccessAlert = document.getElementById('ingredientiSuccessAlert');
+            const ingredientiSuccessMessage = document.getElementById('ingredientiSuccessMessage');
+            const localeSuccessAlert = document.getElementById('localeSuccessAlert');
+            const localeSuccessMessage = document.getElementById('localeSuccessMessage');
+            const storiaSuccessAlert = document.getElementById('storiaSuccessAlert');
+            const storiaSuccessMessage = document.getElementById('storiaSuccessMessage');
+
+            // Funzione per mostrare messaggi di successo o errore
+            function showSuccessAlert(messageText, alertElement = successAlert, messageElement = successMessage, type = "success") {
+                if (!alertElement || !messageElement) {
+                    console.error("Elementi di alert non trovati:", alertElement, messageElement);
+                    alert(`${type.toUpperCase()}: ${messageText}`);
+                    return;
+                }
+                
+                let currentClasses = alertElement.className.split(' ');
+                currentClasses = currentClasses.filter(cls => cls !== 'alert-success' && cls !== 'alert-danger');
+                
+                if (type === "error") {
+                    currentClasses.push('alert-danger');
+                } else {
+                    currentClasses.push('alert-success');
+                }
+                alertElement.className = currentClasses.join(' ');
+                
+                messageElement.textContent = messageText;
+                alertElement.style.display = 'flex';
+                
+                setTimeout(() => {
+                    alertElement.style.display = 'none';
+                }, 3000);
+            }
+
+            // Riferimenti al DOM
+            const authLoader = document.getElementById('authLoader');
+            const adminContent = document.getElementById('adminContent');
+
+            // Gestione logout
+            const logoutButton = document.querySelector('.admin-logout');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    auth.signOut().then(() => {
+                        window.location.href = 'login.html';
+                    }).catch(error => {
+                        console.error('Errore durante il logout:', error);
+                        alert('Errore durante il logout: ' + error.message);
+                    });
+                });
+            }
+            
+            // Toggle Sidebar
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const sidebar = document.querySelector('.admin-sidebar');
+            const mainContentEl = document.getElementById('adminMain');
+            
+            if (toggleBtn && sidebar && mainContentEl) {
+                toggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('collapsed');
+                    mainContentEl.classList.toggle('expanded');
+                });
+            }
+            
+            // Navigation menu
+            const navLinks = document.querySelectorAll('.admin-menu-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            
+            if (navLinks.length > 0 && contentSections.length > 0) {
+                navLinks.forEach(link => {
+                    link.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        navLinks.forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                        contentSections.forEach(section => section.style.display = 'none');
+                        const targetSectionId = this.getAttribute('data-section');
+                        const targetSection = document.getElementById(targetSectionId);
+                        if (targetSection) {
+                            targetSection.style.display = 'block';
+                              // Carica i dati quando si cambia sezione
+                            if (targetSectionId === 'carousel-section') {
+                                await loadCarouselData();
+                            } else if (targetSectionId === 'storia-section') {
+                                await loadStoriaData();
+                            } else if (targetSectionId === 'valori-section') {
+                                await loadValoriData();
+                            } else if (targetSectionId === 'ingredienti-section') {
+                                await loadIngredientiData();
+                            } else if (targetSectionId === 'locale-section') {
+                                await loadLocaleData();
+                            } else if (targetSectionId === 'team-section') {
+                                await loadTeamData();
+                            }
+                        }
+                    });
+                });
+                if (navLinks[0]) {
+                    navLinks[0].click();
+                }
+            }
+            
+            // SEZIONE PIZZE (già esistente)
+            try {
+                const pizze = await loadPizzas();
+                loadPizzaTable(pizze);
+            } catch (error) {
+                console.error("Errore durante il caricamento delle pizze:", error);
+                showSuccessAlert("Errore di accesso al database. Verifica la connessione e i permessi.", successAlert, successMessage, "error");
+            }
+
+            // Event listener per il form delle pizze
+            const pizzaForm = document.getElementById('pizzaForm');
+            pizzaForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const saveBtn = document.getElementById('saveBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvataggio in corso...';
+                
+                try {
+                    const ingredientTags = document.querySelectorAll('#pizzaIngredients .tag');
+                    const ingredients = Array.from(ingredientTags).map(tag => tag.textContent.trim().replace('×', ''));
+                    
+                    if (ingredients.length === 0) {
+                        alert('Aggiungi almeno un ingrediente');
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Salva';
+                        return;
+                    }
+                    
+                    const pizzaId = document.getElementById('pizzaId').value;
+                    const pizzaData = {
+                        name: document.getElementById('pizzaName').value,
+                        price: parseFloat(document.getElementById('pizzaPrice').value),
+                        category: document.getElementById('pizzaCategory').value,
+                        description: document.getElementById('pizzaDescription').value,
+                        ingredients: ingredients,
+                        badge: document.getElementById('pizzaBadge').value,
+                        status: parseInt(document.getElementById('pizzaStatus').value),
+                        featured: document.getElementById('pizzaFeatured').checked,
+                        largeTitle: document.getElementById('pizzaLargeTitle').checked
+                    };
+                    
+                    const fileInput = document.getElementById('pizzaImage');
+                    const imageFile = fileInput.files.length > 0 ? fileInput.files[0] : null;
+                    
+                    if (!imageFile && document.getElementById('previewImage').src && !document.getElementById('previewImage').src.includes('data:image')) {
+                        pizzaData.image = document.getElementById('previewImage').src;
+                    }
+                    
+                    if (pizzaId) {
+                        await updatePizza(pizzaId, pizzaData, imageFile);
+                        showSuccessAlert('Pizza aggiornata con successo!');
+                    } else {
+                        await addPizza(pizzaData, imageFile);
+                        showSuccessAlert('Pizza aggiunta con successo!');
+                    }
+                    
+                    const pizze = await loadPizzas();
+                    loadPizzaTable(pizze);
+                    
+                    document.getElementById('pizzaModal').classList.remove('show');
+                    document.getElementById('modalBackdrop').classList.remove('show');
+                    
+                } catch (error) {
+                    console.error("Errore durante il salvataggio della pizza:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Salva';
+                }
+            });
+
+            // Event listener per eliminare una pizza
+            document.getElementById('confirmDeleteBtn').addEventListener('click', async function() {
+                const pizzaId = this.getAttribute('data-id');
+                
+                try {
+                    await deletePizza(pizzaId);
+                    const pizze = await loadPizzas();
+                    loadPizzaTable(pizze);
+                    showSuccessAlert('Pizza eliminata con successo!');
+                } catch (error) {
+                    console.error("Errore durante l'eliminazione della pizza:", error);
+                    alert(`Errore durante l'eliminazione: ${error.message}`);
+                }
+                
+                document.getElementById('deleteModal').classList.remove('show');
+                document.getElementById('modalBackdrop').classList.remove('show');
+            });
+            
+            function loadPizzaTable(data) {
+                const tableBody = document.getElementById('pizzaTableBody');
+                tableBody.innerHTML = '';
+                
+                data.forEach(pizza => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><img src="${pizza.image}" alt="${pizza.name}" class="img-thumbnail"></td>
+                        <td>${pizza.name}</td>
+                        <td>${categoryMap[pizza.category]}</td>
+                        <td>€ ${pizza.price.toFixed(2)}</td>
+                        <td>${pizza.status === 1 ? '<span class="badge badge-success">Attiva</span>' : '<span class="badge badge-danger">Disattiva</span>'}</td>
+                        <td class="table-actions">
+                            <button class="btn btn-sm btn-primary edit-btn" data-id="${pizza.id}">✏️</button>
+                            <button class="btn btn-sm btn-danger delete-btn" data-id="${pizza.id}" data-name="${pizza.name}">🗑️</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                addButtonEventListeners();
+            }
+            
+            function addButtonEventListeners() {
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const pizzaId = this.getAttribute('data-id');
+                        openEditModal(pizzaId);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const pizzaId = this.getAttribute('data-id');
+                        const pizzaName = this.getAttribute('data-name');
+                        openDeleteModal(pizzaId, pizzaName);
+                    });
+                });
+            }
+            
+            async function openEditModal(pizzaId) {
+                try {
+                    const pizza = await getPizza(pizzaId);
+                    
+                    document.getElementById('pizzaId').value = pizza.id;
+                    document.getElementById('pizzaName').value = pizza.name;
+                    document.getElementById('pizzaPrice').value = pizza.price;
+                    document.getElementById('pizzaCategory').value = pizza.category;
+                    document.getElementById('pizzaDescription').value = pizza.description;
+                    document.getElementById('pizzaBadge').value = pizza.badge || '';
+                    document.getElementById('pizzaStatus').value = pizza.status;
+                    document.getElementById('pizzaFeatured').checked = pizza.featured;
+                    document.getElementById('pizzaLargeTitle').checked = pizza.largeTitle;
+                    
+                    const tagsInputContainer = document.getElementById('pizzaIngredients');
+                    tagsInputContainer.innerHTML = '<input type="text" placeholder="Aggiungi ingrediente e premi Enter" id="ingredientInput">';
+                    const ingredientInputRef = document.getElementById('ingredientInput'); 
+                    pizza.ingredients.forEach(ingredient => {
+                        addIngredientTag(ingredient); 
+                    });
+                    
+                    const previewImgElement = document.getElementById('previewImage');
+                    const imagePreviewContainer = document.getElementById('imagePreview');
+                    if (pizza.image) {
+                        previewImgElement.src = pizza.image;
+                        imagePreviewContainer.style.display = 'flex';
+                    } else {
+                        previewImgElement.src = '';
+                        imagePreviewContainer.style.display = 'none';
+                    }
+                    
+                    document.getElementById('modalTitle').textContent = 'Modifica Pizza';
+                    pizzaModal.classList.add('show');
+                    modalBackdrop.classList.add('show');
+                } catch (error) {
+                    console.error("Errore durante il recupero della pizza:", error);
+                    alert(`Errore durante il recupero della pizza: ${error.message}`);
+                }
+            }
+
+            // SEZIONE CAROSELLO
+            async function loadCarouselData() {
+                try {
+                    const slides = await loadCarouselSlides();
+                    displayCarouselSlides(slides);
+                } catch (error) {
+                    console.error("Errore durante il caricamento del carosello:", error);
+                    showSuccessAlert("Errore durante il caricamento del carosello", carouselSuccessAlert, carouselSuccessMessage, "error");
+                }
+            }
+
+            function displayCarouselSlides(slides) {
+                const container = document.getElementById('carouselContainer');
+                container.innerHTML = '';
+                
+                slides.forEach((slide, index) => {
+                    const slideElement = document.createElement('div');
+                    slideElement.className = 'carousel-item';
+                    slideElement.setAttribute('data-id', slide.id);
+                    slideElement.innerHTML = `
+                        <img src="${slide.image}" alt="${slide.alt || 'Slide ' + (index + 1)}">
+                        <div class="carousel-item-overlay">
+                            <div class="carousel-item-order">${index + 1}</div>
+                            <div class="carousel-item-actions">
+                                <button class="btn btn-sm btn-secondary edit-carousel-btn" data-id="${slide.id}">📝</button>
+                                <button class="btn btn-sm btn-danger delete-carousel-btn" data-id="${slide.id}">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(slideElement);
+                });
+                
+                setupCarouselEventListeners();
+            }
+
+            function setupCarouselEventListeners() {
+                document.querySelectorAll('.edit-carousel-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const slideId = this.getAttribute('data-id');
+                        try {
+                            const slide = await getCarouselSlide(slideId);
+                            
+                            document.getElementById('carouselItemId').value = slide.id;
+                            document.getElementById('carouselAlt').value = slide.alt || '';
+                            document.getElementById('carouselPreviewImage').src = slide.image;
+                            document.getElementById('carouselImagePreview').style.display = 'flex';
+                            
+                            document.getElementById('carouselModalTitle').textContent = 'Modifica Immagine Carosello';
+                            carouselModal.classList.add('show');
+                            modalBackdrop.classList.add('show');
+                        } catch (error) {
+                            console.error("Errore durante il recupero della slide:", error);
+                            alert("Errore durante il recupero della slide");
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-carousel-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        if (confirm('Sei sicuro di voler eliminare questa immagine?')) {
+                            const slideId = this.getAttribute('data-id');
+                            try {
+                                await deleteCarouselSlide(slideId);
+                                await loadCarouselData();
+                                showSuccessAlert('Immagine eliminata con successo!', carouselSuccessAlert, carouselSuccessMessage);
+                            } catch (error) {
+                                console.error("Errore durante l'eliminazione:", error);
+                                alert("Errore durante l'eliminazione della slide");
+                            }
+                        }
+                    });
+                });
+            }
+
+            // SEZIONE STORIA
+            async function loadStoriaData() {
+                try {
+                    const storia = await loadStoria();
+                    
+                    document.getElementById('storiaTitolo').value = storia.titolo || '';
+                    document.getElementById('storiaSubtitle').value = storia.sottotitolo || '';
+                    document.getElementById('storiaContent').innerHTML = storia.contenuto || '';
+                    document.getElementById('storiaAnno').value = storia.anno || '';
+                    if (storia.immagine) {
+                        document.getElementById('storiaImagePreview').src = storia.immagine;
+                    }
+                } catch (error) {
+                    console.error("Errore durante il caricamento della storia:", error);
+                    showSuccessAlert("Errore durante il caricamento della storia", storiaSuccessAlert, storiaSuccessMessage, "error");
+                }
+            }
+
+            // SEZIONE VALORI
+            async function loadValoriData() {
+                try {
+                    const valori = await loadValori();
+                    displayValori(valori);
+                } catch (error) {
+                    console.error("Errore durante il caricamento dei valori:", error);
+                    showSuccessAlert("Errore durante il caricamento dei valori", valoriSuccessAlert, valoriSuccessMessage, "error");
+                }
+            }
+
+            function displayValori(valori) {
+                const container = document.getElementById('valoriContainer');
+                container.innerHTML = '';
+                
+                valori.forEach(valore => {
+                    const valoreElement = document.createElement('div');
+                    valoreElement.className = 'value-card';
+                    valoreElement.setAttribute('data-id', valore.id);
+                    valoreElement.innerHTML = `
+                        <div class="value-icon">${valore.icon}</div>
+                        <h3 class="value-title">${valore.title}</h3>
+                        <p class="value-description">${valore.description}</p>
+                        <div class="value-actions">
+                            <button class="btn btn-sm btn-secondary edit-valore-btn" data-id="${valore.id}">Modifica</button>
+                            <button class="btn btn-sm btn-danger delete-valore-btn" data-id="${valore.id}">Elimina</button>
+                        </div>
+                    `;
+                    container.appendChild(valoreElement);
+                });
+                
+                setupValoriEventListeners();
+            }
+
+            function setupValoriEventListeners() {
+                document.querySelectorAll('.edit-valore-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const valoreId = this.getAttribute('data-id');
+                        try {
+                            const valore = await getValore(valoreId);
+                            
+                            document.getElementById('valoreId').value = valore.id;
+                            document.getElementById('valoreIcon').value = valore.icon;
+                            document.getElementById('valoreTitolo').value = valore.title;
+                            document.getElementById('valoreDescrizione').value = valore.description;
+                            
+                            document.getElementById('valoreModalTitle').textContent = 'Modifica Valore';
+                            valoreModal.classList.add('show');
+                            modalBackdrop.classList.add('show');
+                        } catch (error) {
+                            console.error("Errore durante il recupero del valore:", error);
+                            alert("Errore durante il recupero del valore");
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-valore-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        if (confirm('Sei sicuro di voler eliminare questo valore?')) {
+                            const valoreId = this.getAttribute('data-id');
+                            try {
+                                await deleteValore(valoreId);
+                                await loadValoriData();
+                                showSuccessAlert('Valore eliminato con successo!', valoriSuccessAlert, valoriSuccessMessage);
+                            } catch (error) {
+                                console.error("Errore durante l'eliminazione:", error);
+                                alert("Errore durante l'eliminazione del valore");
+                            }
+                        }
+                    });
+                });
+            }
+
+            // SEZIONE INGREDIENTI
+            async function loadIngredientiData() {
+                try {
+                    const settings = await loadIngredientiSettings();
+                    document.getElementById('ingredientiTitolo').value = settings.titolo || '';
+                    document.getElementById('ingredientiIntro').value = settings.introduzione || '';
+                    
+                    const ingredienti = await loadIngredienti();
+                    displayIngredienti(ingredienti);
+                } catch (error) {
+                    console.error("Errore durante il caricamento degli ingredienti:", error);
+                    showSuccessAlert("Errore durante il caricamento degli ingredienti", ingredientiSuccessAlert, ingredientiSuccessMessage, "error");
+                }
+            }
+
+            function displayIngredienti(ingredienti) {
+                const container = document.getElementById('ingredientiContainer');
+                container.innerHTML = '';
+                
+                ingredienti.forEach(ingrediente => {
+                    const ingredienteElement = document.createElement('div');
+                    ingredienteElement.className = 'ingredient-card';
+                    ingredienteElement.setAttribute('data-id', ingrediente.id);
+                    ingredienteElement.innerHTML = `
+                        <img src="${ingrediente.immagine}" alt="${ingrediente.titolo}" class="ingredient-img">
+                        <div class="ingredient-content">
+                            <h3 class="ingredient-title">${ingrediente.titolo}</h3>
+                            <p class="ingredient-description">${ingrediente.descrizione}</p>
+                            <span class="ingredient-badge">${ingrediente.badge}</span>
+                            <div class="ingredient-actions">
+                                <button class="btn btn-sm btn-secondary edit-ingrediente-btn" data-id="${ingrediente.id}">Modifica</button>
+                                <button class="btn btn-sm btn-danger delete-ingrediente-btn" data-id="${ingrediente.id}">Elimina</button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(ingredienteElement);
+                });
+                
+                setupIngredientiEventListeners();
+            }
+
+            function setupIngredientiEventListeners() {
+                document.querySelectorAll('.edit-ingrediente-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const ingredienteId = this.getAttribute('data-id');
+                        try {
+                            const ingredienti = await loadIngredienti();
+                            const ingrediente = ingredienti.find(i => i.id === ingredienteId);
+                            
+                            if (ingrediente) {
+                                document.getElementById('ingredienteId').value = ingrediente.id;
+                                document.getElementById('ingredienteTitolo').value = ingrediente.titolo;
+                                document.getElementById('ingredienteDescrizione').value = ingrediente.descrizione;
+                                document.getElementById('ingredienteBadge').value = ingrediente.badge;
+                                
+                                if (ingrediente.immagine) {
+                                    document.getElementById('ingredientePreviewImage').src = ingrediente.immagine;
+                                    document.getElementById('ingredienteImagePreview').style.display = 'flex';
+                                }
+                                
+                                document.getElementById('ingredienteModalTitle').textContent = 'Modifica Ingrediente';
+                                ingredienteModal.classList.add('show');
+                                modalBackdrop.classList.add('show');
+                            }
+                        } catch (error) {
+                            console.error("Errore durante il recupero dell'ingrediente:", error);
+                            alert("Errore durante il recupero dell'ingrediente");
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-ingrediente-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        if (confirm('Sei sicuro di voler eliminare questo ingrediente?')) {
+                            const ingredienteId = this.getAttribute('data-id');
+                            try {
+                                await deleteIngrediente(ingredienteId);
+                                await loadIngredientiData();
+                                showSuccessAlert('Ingrediente eliminato con successo!', ingredientiSuccessAlert, ingredientiSuccessMessage);
+                            } catch (error) {
+                                console.error("Errore durante l'eliminazione:", error);
+                                alert("Errore durante l'eliminazione dell'ingrediente");
+                            }
+                        }
+                    });
+                });
+            }
+
+            // SEZIONE LOCALE
+            async function loadLocaleData() {
+                try {
+                    const settings = await loadLocaleSettings();
+                    document.getElementById('localeTitolo').value = settings.titolo || '';
+                    document.getElementById('localeIntro').value = settings.introduzione || '';
+                    
+                    const gallery = await loadGallery();
+                    displayGallery(gallery);
+                } catch (error) {
+                    console.error("Errore durante il caricamento del locale:", error);
+                    showSuccessAlert("Errore durante il caricamento del locale", localeSuccessAlert, localeSuccessMessage, "error");
+                }
+            }
+
+            function displayGallery(images) {
+                const container = document.getElementById('galleryContainer');
+                container.innerHTML = '';
+                
+                images.forEach(image => {
+                    const imageElement = document.createElement('div');
+                    imageElement.className = 'gallery-item';
+                    imageElement.setAttribute('data-id', image.id);
+                    imageElement.innerHTML = `
+                        <img src="${image.url}" alt="${image.alt}">
+                        <div class="gallery-item-overlay">
+                            <div class="gallery-item-caption">${image.caption}</div>
+                            <div class="gallery-item-actions">
+                                <button class="btn btn-sm btn-secondary edit-gallery-btn" data-id="${image.id}">📝</button>
+                                <button class="btn btn-sm btn-danger delete-gallery-btn" data-id="${image.id}">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(imageElement);
+                });
+                
+                setupGalleryEventListeners();
+            }
+
+            function setupGalleryEventListeners() {
+                document.querySelectorAll('.edit-gallery-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const imageId = this.getAttribute('data-id');
+                        try {
+                            const gallery = await loadGallery();
+                            const image = gallery.find(img => img.id === imageId);
+                            
+                            if (image) {
+                                document.getElementById('galleryItemId').value = image.id;
+                                document.getElementById('galleryCaption').value = image.caption;
+                                document.getElementById('galleryAlt').value = image.alt;
+                                document.getElementById('galleryPreviewImage').src = image.url;
+                                document.getElementById('galleryImagePreview').style.display = 'flex';
+                                
+                                document.getElementById('galleryModalTitle').textContent = 'Modifica Immagine Galleria';
+                                galleryModal.classList.add('show');
+                                modalBackdrop.classList.add('show');
+                            }
+                        } catch (error) {
+                            console.error("Errore durante il recupero dell'immagine:", error);
+                            alert("Errore durante il recupero dell'immagine");
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-gallery-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        if (confirm('Sei sicuro di voler eliminare questa immagine?')) {
+                            const imageId = this.getAttribute('data-id');
+                            try {
+                                await deleteGalleryImage(imageId);
+                                await loadLocaleData();
+                                showSuccessAlert('Immagine eliminata con successo!', localeSuccessAlert, localeSuccessMessage);
+                            } catch (error) {
+                                console.error("Errore durante l'eliminazione:", error);
+                                alert("Errore durante l'eliminazione dell'immagine");
+                            }
+                        }
+                    });
+                });
+            }
+
+            // VARIABILI E RIFERIMENTI DOM
+            const addPizzaBtn = document.getElementById('addPizzaBtn');
+            const closeModal = document.getElementById('closeModal');
+            const cancelBtn = document.getElementById('cancelBtn');
+            const modalTitle = document.getElementById('modalTitle');
+
+            const closeDeleteModal = document.getElementById('closeDeleteModal');
+            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const deletePizzaName = document.getElementById('deletePizzaName');
+
+            const carouselModal = document.getElementById('carouselModal');
+            const addCarouselBtn = document.getElementById('addCarouselBtn');
+            const closeCarouselModal = document.getElementById('closeCarouselModal');
+            const cancelCarouselBtn = document.getElementById('cancelCarouselBtn');
+            const carouselForm = document.getElementById('carouselForm');
+
+            const valoreModal = document.getElementById('valoreModal');
+            const addValoreBtn = document.getElementById('addValoreBtn');
+            const closeValoreModal = document.getElementById('closeValoreModal');
+            const cancelValoreBtn = document.getElementById('cancelValoreBtn');
+            const valoreForm = document.getElementById('valoreForm');
+
+            const ingredienteModal = document.getElementById('ingredienteModal');
+            const addIngredienteBtn = document.getElementById('addIngredienteBtn');
+            const closeIngredienteModal = document.getElementById('closeIngredienteModal');
+            const cancelIngredienteBtn = document.getElementById('cancelIngredienteBtn');
+            const ingredienteForm = document.getElementById('ingredienteForm');
+
+            const galleryModal = document.getElementById('galleryModal');
+            const addLocaleImageBtn = document.getElementById('addLocaleImageBtn');
+            const closeGalleryModal = document.getElementById('closeGalleryModal');
+            const cancelGalleryBtn = document.getElementById('cancelGalleryBtn');
+            const galleryForm = document.getElementById('galleryForm');
+
+            // Cerca pizze
+            document.getElementById('searchPizza').addEventListener('input', async function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const pizze = await loadPizzas();
+                const filteredPizze = pizze.filter(pizza => 
+                    pizza.name.toLowerCase().includes(searchTerm) || 
+                    pizza.description.toLowerCase().includes(searchTerm) ||
+                    (pizza.ingredients && pizza.ingredients.some(ing => ing.toLowerCase().includes(searchTerm)))
+                );
+                loadPizzaTable(filteredPizze);
+            });
+
+            // Funzione per aprire il modal di eliminazione
+            function openDeleteModal(pizzaId, pizzaNameText) {
+                confirmDeleteBtn.setAttribute('data-id', pizzaId);
+                deletePizzaName.textContent = pizzaNameText;
+                deleteModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            }
+
+            // Gestione degli ingredienti come tag
+            const ingredientInput = document.getElementById('ingredientInput');
+            
+            ingredientInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const value = this.value.trim();
+                    if (value) {
+                        addIngredientTag(value);
+                        this.value = '';
+                    }
+                }
+            });
+            
+            function addIngredientTag(text) {
+                const tagsInputContainer = document.getElementById('pizzaIngredients');
+                const currentInput = document.getElementById('ingredientInput');
+                
+                if (!currentInput) {
+                    console.error("Input field 'ingredientInput' non trovato dentro 'pizzaIngredients'");
+                    return;
+                }
+
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.innerHTML = `
+                    ${text}
+                    <span class="tag-remove">×</span>
+                `;
+                
+                tag.querySelector('.tag-remove').addEventListener('click', function() {
+                    tagsInputContainer.removeChild(tag);
+                });
+                
+                tagsInputContainer.insertBefore(tag, currentInput);
+            }
+
+            // Gestione upload immagini
+            function handleImageSelection(input, previewId, previewContainerId) {
+                if (input.files.length > 0) {
+                    const file = input.files[0];
+                    
+                    if (!file.type.startsWith('image/')) {
+                        alert('Per favore seleziona un immagine valida.');
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById(previewId).src = e.target.result;
+                        document.getElementById(previewContainerId).style.display = 'flex';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+
+            // Setup dropzones per tutte le sezioni
+            setupDropzone('pizzaImageDropzone', 'pizzaImage', 'previewImage', 'imagePreview');
+            setupDropzone('carouselImageDropzone', 'carouselImage', 'carouselPreviewImage', 'carouselImagePreview');
+            setupDropzone('storiaImageDropzone', 'storiaImage', 'storiaImagePreview', null);
+            setupDropzone('ingredienteImageDropzone', 'ingredienteImage', 'ingredientePreviewImage', 'ingredienteImagePreview');
+            setupDropzone('galleryImageDropzone', 'galleryImage', 'galleryPreviewImage', 'galleryImagePreview');
+
+            function setupDropzone(dropzoneId, fileInputId, previewImageId, previewContainerId) {
+                const dropzone = document.getElementById(dropzoneId);
+                const fileInput = document.getElementById(fileInputId);
+                
+                if (!dropzone || !fileInput) return;
+                
+                dropzone.addEventListener('click', function() {
+                    fileInput.click();
+                });
+
+                dropzone.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = 'var(--primary)';
+                    this.style.backgroundColor = 'var(--primary-light)';
+                });
+
+                dropzone.addEventListener('dragleave', function() {
+                    this.style.borderColor = '#ced4da';
+                    this.style.backgroundColor = '';
+                });
+
+                dropzone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#ced4da';
+                    this.style.backgroundColor = '';
+                    
+                    if (e.dataTransfer.files.length) {
+                        fileInput.files = e.dataTransfer.files;
+                        if (previewContainerId) {
+                            handleImageSelection(fileInput, previewImageId, previewContainerId);
+                        } else {
+                            handleImageSelection(fileInput, previewImageId, previewImageId);
+                        }
+                    }
+                });
+
+                fileInput.addEventListener('change', function() {
+                    if (previewContainerId) {
+                        handleImageSelection(this, previewImageId, previewContainerId);
+                    } else {
+                        handleImageSelection(this, previewImageId, previewImageId);
+                    }
+                });
+            }
+
+            // Event listeners per rimuovere immagini
+            document.getElementById('removeImage')?.addEventListener('click', function() {
+                document.getElementById('pizzaImage').value = '';
+                document.getElementById('previewImage').src = '';
+                document.getElementById('imagePreview').style.display = 'none';
+            });
+
+            document.getElementById('removeCarouselImage')?.addEventListener('click', function() {
+                document.getElementById('carouselImage').value = '';
+                document.getElementById('carouselImagePreview').style.display = 'none';
+            });
+
+            document.getElementById('removeIngredienteImage')?.addEventListener('click', function() {
+                document.getElementById('ingredienteImage').value = '';
+                document.getElementById('ingredienteImagePreview').style.display = 'none';
+            });
+
+            document.getElementById('removeGalleryImage')?.addEventListener('click', function() {
+                document.getElementById('galleryImage').value = '';
+                document.getElementById('galleryImagePreview').style.display = 'none';
+            });
+
+            // Modal handlers
+            addPizzaBtn.addEventListener('click', function() {
+                pizzaForm.reset();
+                document.getElementById('pizzaId').value = '';
+                
+                const tagsInputContainer = document.getElementById('pizzaIngredients');
+                tagsInputContainer.innerHTML = '';
+                if (!tagsInputContainer.querySelector('#ingredientInput')) {
+                    const newInput = document.createElement('input');
+                    newInput.type = 'text';
+                    newInput.placeholder = 'Aggiungi ingrediente e premi Enter';
+                    newInput.id = 'ingredientInput';
+                    tagsInputContainer.appendChild(newInput);
+                    newInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const value = this.value.trim();
+                            if (value) {
+                                addIngredientTag(value);
+                                this.value = '';
+                            }
+                        }
+                    });
+                }
+                
+                document.getElementById('previewImage').src = '';
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('pizzaImage').value = '';
+                
+                modalTitle.textContent = 'Aggiungi Pizza';
+                pizzaModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+
+            closeModal.addEventListener('click', function() {
+                pizzaModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            cancelBtn.addEventListener('click', function() {
+                pizzaModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            closeDeleteModal.addEventListener('click', function() {
+                deleteModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            cancelDeleteBtn.addEventListener('click', function() {
+                deleteModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            // Carosello handlers
+            addCarouselBtn.addEventListener('click', function() {
+                carouselForm.reset();
+                document.getElementById('carouselItemId').value = '';
+                document.getElementById('carouselImagePreview').style.display = 'none';
+                document.getElementById('carouselModalTitle').textContent = 'Aggiungi Immagine Carosello';
+                carouselModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+
+            closeCarouselModal.addEventListener('click', function() {
+                carouselModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            cancelCarouselBtn.addEventListener('click', function() {
+                carouselModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            carouselForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const saveBtn = document.getElementById('saveCarouselBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvataggio...';
+                
+                try {
+                    const carouselId = document.getElementById('carouselItemId').value;
+                    const carouselData = {
+                        alt: document.getElementById('carouselAlt').value
+                    };
+                    
+                    const fileInput = document.getElementById('carouselImage');
+                    const imageFile = fileInput.files.length > 0 ? fileInput.files[0] : null;
+                    
+                    if (!imageFile && !carouselId) {
+                        alert('Seleziona un\'immagine per il carosello');
+                        return;
+                    }
+                    
+                    if (carouselId) {
+                        await updateCarouselSlide(carouselId, carouselData, imageFile);
+                        showSuccessAlert('Immagine aggiornata con successo!', carouselSuccessAlert, carouselSuccessMessage);
+                    } else {
+                        await addCarouselSlide(carouselData, imageFile);
+                        showSuccessAlert('Immagine aggiunta con successo!', carouselSuccessAlert, carouselSuccessMessage);
+                    }
+                    
+                    await loadCarouselData();
+                    carouselModal.classList.remove('show');
+                    modalBackdrop.classList.remove('show');
+                    
+                } catch (error) {
+                    console.error("Errore durante il salvataggio:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Salva';
+                }
+            });
+
+            document.getElementById('saveOrderBtn').addEventListener('click', async function() {
+                const items = document.querySelectorAll('#carouselContainer .carousel-item');
+                const order = Array.from(items).map(item => ({
+                    id: item.getAttribute('data-id')
+                }));
+                
+                try {
+                    await updateCarouselOrder(order);
+                    showSuccessAlert('Ordine salvato con successo!', carouselSuccessAlert, carouselSuccessMessage);
+                } catch (error) {
+                    console.error("Errore durante il salvataggio dell'ordine:", error);
+                    alert("Errore durante il salvataggio dell'ordine");
+                }
+            });
+
+            // Storia handlers
+            document.getElementById('saveStoria').addEventListener('click', async function() {
+                this.disabled = true;
+                this.textContent = 'Salvataggio...';
+                
+                try {
+                    const storiaData = {
+                        titolo: document.getElementById('storiaTitolo').value,
+                        sottotitolo: document.getElementById('storiaSubtitle').value,
+                        contenuto: document.getElementById('storiaContent').innerHTML,
+                        anno: document.getElementById('storiaAnno').value
+                    };
+                    
+                    const fileInput = document.getElementById('storiaImage');
+                    const imageFile = fileInput.files.length > 0 ? fileInput.files[0] : null;
+                    
+                    await saveStoria(storiaData, imageFile);
+                    showSuccessAlert('Modifiche salvate con successo!', storiaSuccessAlert, storiaSuccessMessage);
+                    
+                } catch (error) {
+                    console.error("Errore durante il salvataggio:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    this.disabled = false;
+                    this.textContent = 'Salva Modifiche';
+                }
+            });
+
+            // WYSIWYG editor
+            document.querySelectorAll('.wysiwyg-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const content = document.getElementById('storiaContent');
+                    
+                    if (this.classList.contains('bold-btn')) {
+                        document.execCommand('bold', false, null);
+                    } else if (this.classList.contains('italic-btn')) {
+                        document.execCommand('italic', false, null);
+                    } else if (this.classList.contains('underline-btn')) {
+                        document.execCommand('underline', false, null);
+                    } else if (this.classList.contains('paragraph-btn')) {
+                        document.execCommand('formatBlock', false, '<p>');
+                    }
+                    
+                    content.focus();
+                });
+            });
+
+            // Valori handlers
+            addValoreBtn.addEventListener('click', function() {
+                valoreForm.reset();
+                document.getElementById('valoreId').value = '';
+                document.getElementById('valoreModalTitle').textContent = 'Aggiungi Valore';
+                valoreModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+
+            closeValoreModal.addEventListener('click', function() {
+                valoreModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            cancelValoreBtn.addEventListener('click', function() {
+                valoreModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            valoreForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const saveBtn = document.getElementById('saveValoreBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvataggio...';
+                
+                try {
+                    const valoreId = document.getElementById('valoreId').value;
+                    const valoreData = {
+                        icon: document.getElementById('valoreIcon').value,
+                        title: document.getElementById('valoreTitolo').value,
+                        description: document.getElementById('valoreDescrizione').value
+                    };
+                    
+                    if (valoreId) {
+                        await updateValore(valoreId, valoreData);
+                        showSuccessAlert('Valore aggiornato con successo!', valoriSuccessAlert, valoriSuccessMessage);
+                    } else {
+                        await addValore(valoreData);
+                        showSuccessAlert('Valore aggiunto con successo!', valoriSuccessAlert, valoriSuccessMessage);
+                    }
+                    
+                    await loadValoriData();
+                    valoreModal.classList.remove('show');
+                    modalBackdrop.classList.remove('show');
+                    
+                } catch (error) {
+                    console.error("Errore durante il salvataggio:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Salva';
+                }
+            });
+
+            document.getElementById('saveValoriOrderBtn').addEventListener('click', async function() {
+                const items = document.querySelectorAll('#valoriContainer .value-card');
+                const order = Array.from(items).map(item => ({
+                    id: item.getAttribute('data-id')
+                }));
+                
+                try {
+                    await updateValoriOrder(order);
+                    showSuccessAlert('Ordine salvato con successo!', valoriSuccessAlert, valoriSuccessMessage);
+                } catch (error) {
+                    console.error("Errore durante il salvataggio dell'ordine:", error);
+                    alert("Errore durante il salvataggio dell'ordine");
+                }
+            });
+
+            // Ingredienti handlers
+            addIngredienteBtn.addEventListener('click', function() {
+                ingredienteForm.reset();
+                document.getElementById('ingredienteId').value = '';
+                document.getElementById('ingredienteImagePreview').style.display = 'none';
+                document.getElementById('ingredienteModalTitle').textContent = 'Aggiungi Ingrediente';
+                ingredienteModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+
+            closeIngredienteModal.addEventListener('click', function() {
+                ingredienteModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            cancelIngredienteBtn.addEventListener('click', function() {
+                ingredienteModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            ingredienteForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const saveBtn = document.getElementById('saveIngredienteBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvataggio...';
+                
+                try {
+                    const ingredienteId = document.getElementById('ingredienteId').value;
+                    const ingredienteData = {
+                        titolo: document.getElementById('ingredienteTitolo').value,
+                        descrizione: document.getElementById('ingredienteDescrizione').value,
+                        badge: document.getElementById('ingredienteBadge').value
+                    };
+                    
+                    const fileInput = document.getElementById('ingredienteImage');
+                    const imageFile = fileInput.files.length > 0 ? fileInput.files[0] : null;
+                    
+                    if (!imageFile && !ingredienteId) {
+                        alert('Seleziona un\'immagine per l\'ingrediente');
+                        return;
+                    }
+                    
+                    if (ingredienteId) {
+                        await updateIngrediente(ingredienteId, ingredienteData, imageFile);
+                        showSuccessAlert('Ingrediente aggiornato con successo!', ingredientiSuccessAlert, ingredientiSuccessMessage);
+                    } else {
+                        await addIngrediente(ingredienteData, imageFile);
+                        showSuccessAlert('Ingrediente aggiunto con successo!', ingredientiSuccessAlert, ingredientiSuccessMessage);
+                    }
+                    
+                    await loadIngredientiData();
+                    ingredienteModal.classList.remove('show');
+                    modalBackdrop.classList.remove('show');
+                    
+                } catch (error) {
+                    console.error("Errore durante il salvataggio:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Salva';
+                }
+            });
+
+            document.getElementById('saveIngredientiIntroBtn').addEventListener('click', async function() {
+                this.disabled = true;
+                this.textContent = 'Salvataggio...';
+                
+                try {
+                    const settingsData = {
+                        titolo: document.getElementById('ingredientiTitolo').value,
+                        introduzione: document.getElementById('ingredientiIntro').value
+                    };
+                    
+                    await saveIngredientiSettings(settingsData);
+                    showSuccessAlert('Introduzione salvata con successo!', ingredientiSuccessAlert, ingredientiSuccessMessage);
+                    
+                } catch (error) {
+                    console.error("Errore durante il salvataggio:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    this.disabled = false;
+                    this.textContent = 'Salva';
+                }
+            });
+
+            // Locale/Gallery handlers
+            addLocaleImageBtn.addEventListener('click', function() {
+                galleryForm.reset();
+                document.getElementById('galleryItemId').value = '';
+                document.getElementById('galleryImagePreview').style.display = 'none';
+                document.getElementById('galleryModalTitle').textContent = 'Aggiungi Immagine Galleria';
+                galleryModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+
+            closeGalleryModal.addEventListener('click', function() {
+                galleryModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            cancelGalleryBtn.addEventListener('click', function() {
+                galleryModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+
+            galleryForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const saveBtn = document.getElementById('saveGalleryBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvataggio...';
+                
+                try {
+                    const galleryId = document.getElementById('galleryItemId').value;
+                    const galleryData = {
+                        caption: document.getElementById('galleryCaption').value,
+                        alt: document.getElementById('galleryAlt').value
+                    };
+                    
+                    const fileInput = document.getElementById('galleryImage');
+                    const imageFile = fileInput.files.length > 0 ? fileInput.files[0] : null;
+                    
+                    if (!imageFile && !galleryId) {
+                        alert('Seleziona un\'immagine per la galleria');
+                        return;
+                    }
+                    
+                    if (galleryId) {
+                        await updateGalleryImage(galleryId, galleryData, imageFile);
+                        showSuccessAlert('Immagine aggiornata con successo!', localeSuccessAlert, localeSuccessMessage);
+                    } else {
+                        await addGalleryImage(galleryData, imageFile);
+                        showSuccessAlert('Immagine aggiunta con successo!', localeSuccessAlert, localeSuccessMessage);
+                    }
+                    
+                    await loadLocaleData();
+                    galleryModal.classList.remove('show');
+                    modalBackdrop.classList.remove('show');
+                    
+                } catch (error) {
+                    console.error("Errore durante il salvataggio:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Salva';
+                }
+            });
+
+            document.getElementById('saveLocaleIntroBtn').addEventListener('click', async function() {
+                this.disabled = true;
+                this.textContent = 'Salvataggio...';
+                
+                try {
+                    const settingsData = {
+                        titolo: document.getElementById('localeTitolo').value,
+                        introduzione: document.getElementById('localeIntro').value
+                    };
+                    
+                    await saveLocaleSettings(settingsData);
+                    showSuccessAlert('Introduzione salvata con successo!', localeSuccessAlert, localeSuccessMessage);
+                    
+                } catch (error) {
+                    console.error("Errore durante il salvataggio:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    this.disabled = false;
+                    this.textContent = 'Salva';
+                }
+            });
+
+            document.getElementById('saveGalleryOrderBtn').addEventListener('click', async function() {
+                const items = document.querySelectorAll('#galleryContainer .gallery-item');
+                const order = Array.from(items).map(item => ({
+                    id: item.getAttribute('data-id')
+                }));
+                
+                try {
+                    await updateGalleryOrder(order);
+                    showSuccessAlert('Ordine salvato con successo!', localeSuccessAlert, localeSuccessMessage);
+                } catch (error) {
+                    console.error("Errore durante il salvataggio dell'ordine:", error);
+                    alert("Errore durante il salvataggio dell'ordine");
+                }
+            });            // Chiudi i modal se si clicca fuori
+            modalBackdrop.addEventListener('click', function() {
+                pizzaModal.classList.remove('show');
+                deleteModal.classList.remove('show');
+                carouselModal.classList.remove('show');
+                valoreModal.classList.remove('show');
+                ingredienteModal.classList.remove('show');
+                galleryModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+        }
     </script>
     <!-- Auth Loader -->
     <div class="auth-loader" id="authLoader">
@@ -113,11 +1374,16 @@
                     <span class="admin-menu-icon">🍅</span>
                     <span class="admin-menu-text">I Nostri Ingredienti</span>
                 </a>
-            </li>
-            <li class="admin-menu-item">
+            </li>            <li class="admin-menu-item">
                 <a href="#" class="admin-menu-link" data-section="locale-section">
                     <span class="admin-menu-icon">🏠</span>
                     <span class="admin-menu-text">Il Nostro Locale</span>
+                </a>
+            </li>
+            <li class="admin-menu-item">
+                <a href="#" class="admin-menu-link" data-section="team-section">
+                    <span class="admin-menu-icon">👥</span>
+                    <span class="admin-menu-text">Il Nostro Team</span>
                 </a>
             </li>
         </ul>
@@ -430,7 +1696,7 @@
                     <div class="ingredients-grid" id="ingredientiContainer">
                         <!-- Gli ingredienti verranno caricati dinamicamente -->
                         <div class="ingredient-card">
-                            <img src="img/pomodoro.jpg" alt="Pomodori San Marzano" class="ingredient-img">
+                            <img src="img/pizza1.jpg" alt="Pomodori San Marzano" class="ingredient-img">
                             <div class="ingredient-content">
                                 <h3 class="ingredient-title">Pomodori San Marzano DOP</h3>
                                 <p class="ingredient-description">Coltivati nelle fertile terre campane, i nostri pomodori San Marzano sono dolci, poco acidi e con pochi semi.</p>
@@ -442,7 +1708,7 @@
                             </div>
                         </div>
                         <div class="ingredient-card">
-                            <img src="img/mozzarella.jpg" alt="Mozzarella di Bufala" class="ingredient-img">
+                            <img src="img/pizza2.jpg" alt="Mozzarella di Bufala" class="ingredient-img">
                             <div class="ingredient-content">
                                 <h3 class="ingredient-title">Mozzarella di Bufala</h3>
                                 <p class="ingredient-description">Fresca e filante, la nostra mozzarella di bufala campana DOP è consegnata settimanalmente per garantire massima freschezza.</p>
@@ -454,7 +1720,7 @@
                             </div>
                         </div>
                         <div class="ingredient-card">
-                            <img src="img/farina.jpg" alt="Farina per l'impasto" class="ingredient-img">
+                            <img src="img/pizza3.jpg" alt="Farina per l'impasto" class="ingredient-img">
                             <div class="ingredient-content">
                                 <h3 class="ingredient-title">Farina Speciale</h3>
                                 <p class="ingredient-description">Il nostro impasto speciale è creato con un mix di farine selezionate che garantiscono leggerezza e digeribilità.</p>
@@ -466,7 +1732,7 @@
                             </div>
                         </div>
                         <div class="ingredient-card">
-                            <img src="img/olio.jpg" alt="Olio Extra Vergine" class="ingredient-img">
+                            <img src="img/pizza4.jpg" alt="Olio Extra Vergine" class="ingredient-img">
                             <div class="ingredient-content">
                                 <h3 class="ingredient-title">Olio Extra Vergine d'Oliva</h3>
                                 <p class="ingredient-description">Il nostro olio EVO è spremuto a freddo da olive italiane, conferendo alle pizze un aroma unico e inconfondibile.</p>
@@ -525,7 +1791,7 @@
                     <div class="gallery-manager" id="galleryContainer">
                         <!-- Le immagini verranno caricate dinamicamente -->
                         <div class="gallery-item">
-                            <img src="img/locale1.jpg" alt="Esterno del locale">
+                            <img src="img/pizza5.jpg" alt="Esterno del locale">
                             <div class="gallery-item-overlay">
                                 <div class="gallery-item-caption">L'esterno del nostro locale</div>
                                 <div class="gallery-item-actions">
@@ -535,7 +1801,7 @@
                             </div>
                         </div>
                         <div class="gallery-item">
-                            <img src="img/locale2.jpg" alt="Area principale">
+                            <img src="img/pizza.jpg" alt="Area principale">
                             <div class="gallery-item-overlay">
                                 <div class="gallery-item-caption">La sala principale</div>
                                 <div class="gallery-item-actions">
@@ -545,7 +1811,7 @@
                             </div>
                         </div>
                         <div class="gallery-item">
-                            <img src="img/locale3.jpg" alt="Forno a legna">
+                            <img src="img/pizzaiolo1.jpg" alt="Forno a legna">
                             <div class="gallery-item-overlay">
                                 <div class="gallery-item-caption">Il nostro forno a legna</div>
                                 <div class="gallery-item-actions">
@@ -555,7 +1821,7 @@
                             </div>
                         </div>
                         <div class="gallery-item">
-                            <img src="img/locale4.jpg" alt="Dettaglio tavolo">
+                            <img src="img/pizzaiolo2.jpg" alt="Dettaglio tavolo">
                             <div class="gallery-item-overlay">
                                 <div class="gallery-item-caption">I nostri tavoli</div>
                                 <div class="gallery-item-actions">
@@ -564,6 +1830,51 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>        </section>
+        
+        <!-- Sezione Il Nostro Team -->
+        <section id="team-section" class="content-section" style="display: none;">
+            <div class="page-header">
+                <h1 class="page-title">Gestione Il Nostro Team</h1>
+                <button class="btn btn-primary" id="addTeamMemberBtn">
+                    <span>+</span> Aggiungi Membro
+                </button>
+            </div>
+            
+            <!-- Alert Success -->
+            <div class="alert alert-success" id="teamSuccessAlert" style="display: none;">
+                <span>✓</span>
+                <span id="teamSuccessMessage">Operazione completata con successo!</span>
+            </div>
+            
+            <!-- Impostazioni Team -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Impostazioni Sezione</h2>
+                    <button class="btn btn-secondary" id="saveTeamSettingsBtn">Salva Impostazioni</button>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label class="form-label">Titolo Sezione</label>
+                        <input type="text" class="form-control" id="teamTitolo" value="Il Nostro Team">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Introduzione</label>
+                        <textarea class="form-control" id="teamIntro" rows="3">Dietro ogni pizza perfetta c'è una squadra appassionata e dedicata. Conosciamo le persone che ogni giorno lavorano con passione per offrirti l'esperienza PIZZIAMO?!</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Team Members -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Membri del Team</h2>
+                </div>
+                <div class="card-body">
+                    <div class="team-grid" id="teamContainer">
+                        <!-- I membri del team verranno caricati dinamicamente -->
                     </div>
                 </div>
             </div>
@@ -875,6 +2186,95 @@
                         <div class="form-buttons">
                             <button type="button" class="btn btn-secondary" id="cancelGalleryBtn">Annulla</button>
                             <button type="submit" class="btn btn-primary" id="saveGalleryBtn">Salva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>    </div>
+    
+    <!-- Team Member Modal -->
+    <div class="modal" id="teamModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="teamModalTitle">Aggiungi Membro del Team</h3>
+                    <button type="button" class="modal-close" id="closeTeamModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="teamForm">
+                        <input type="hidden" id="teamMemberId">
+                        
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="teamNome" class="form-label">Nome*</label>
+                                    <input type="text" class="form-control" id="teamNome" required>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="teamRuolo" class="form-label">Ruolo*</label>
+                                    <input type="text" class="form-control" id="teamRuolo" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="teamDescrizione" class="form-label">Descrizione*</label>
+                            <textarea class="form-control" id="teamDescrizione" rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="teamOrdine" class="form-label">Ordine visualizzazione*</label>
+                                    <input type="number" class="form-control" id="teamOrdine" min="1" required>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label for="teamStatus" class="form-label">Stato*</label>
+                                    <select class="form-select" id="teamStatus" required>
+                                        <option value="1">Attivo</option>
+                                        <option value="0">Nascosto</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Social Media (opzionale)</label>
+                            <div class="row">
+                                <div class="col">
+                                    <input type="url" class="form-control" id="teamFacebook" placeholder="Link Facebook">
+                                </div>
+                                <div class="col">
+                                    <input type="url" class="form-control" id="teamInstagram" placeholder="Link Instagram">
+                                </div>
+                                <div class="col">
+                                    <input type="url" class="form-control" id="teamTwitter" placeholder="Link Twitter">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Foto*</label>
+                            <div class="dropzone" id="teamImageDropzone">
+                                <div class="dropzone-content">
+                                    <div class="dropzone-icon">📁</div>
+                                    <div class="dropzone-text">Trascina una foto qui o clicca per selezionare</div>
+                                </div>
+                                <input type="file" id="teamImage" style="display: none;" accept="image/*">
+                            </div>
+                            <div class="preview-container" id="teamImagePreview" style="display: none;">
+                                <img src="" alt="Preview" class="preview-image" id="teamPreviewImage">
+                                <button type="button" class="btn btn-sm btn-danger" id="removeTeamImage">Rimuovi</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-buttons">
+                            <button type="button" class="btn btn-secondary" id="cancelTeamBtn">Annulla</button>
+                            <button type="submit" class="btn btn-primary" id="saveTeamBtn">Salva</button>
                         </div>
                     </form>
                 </div>
@@ -2116,6 +3516,224 @@
         // Salva ordine galleria
         document.getElementById('saveGalleryOrderBtn').addEventListener('click', function() {
             showSuccessAlert('Ordine salvato con successo!', localeSuccessAlert, localeSuccessMessage);
+        });        // SEZIONE TEAM
+        async function loadTeamData() {
+            try {
+                const settings = await loadTeamSettings();
+                document.getElementById('teamTitolo').value = settings.titolo || 'Il Nostro Team';
+                document.getElementById('teamIntro').value = settings.introduzione || 'Dietro ogni pizza perfetta c\'è una squadra appassionata e dedicata. Conosciamo le persone che ogni giorno lavorano con passione per offrirti l\'esperienza PIZZIAMO?!';
+                
+                const team = await loadTeam();
+                displayTeam(team);
+            } catch (error) {
+                console.error("Errore durante il caricamento del team:", error);
+                showSuccessAlert("Errore durante il caricamento del team", teamSuccessAlert, teamSuccessMessage, "error");
+            }
+        }
+
+        function displayTeam(team) {
+            const container = document.getElementById('teamContainer');
+            container.innerHTML = '';
+            
+            team.forEach(member => {
+                const memberElement = document.createElement('div');
+                memberElement.className = 'team-member-card';
+                memberElement.setAttribute('data-id', member.id);
+                memberElement.innerHTML = `
+                    <div class="team-member-status ${member.status === 1 ? 'active' : 'inactive'}">
+                        ${member.status === 1 ? 'Attivo' : 'Nascosto'}
+                    </div>
+                    <img src="${member.image}" alt="${member.nome}" class="team-member-photo">
+                    <h3 class="team-member-name">${member.nome}</h3>
+                    <p class="team-member-role">${member.ruolo}</p>
+                    <p class="team-member-description">${member.descrizione}</p>
+                    ${member.social ? `
+                        <div class="team-member-social">
+                            ${member.social.facebook ? `<a href="${member.social.facebook}" target="_blank">📘</a>` : ''}
+                            ${member.social.instagram ? `<a href="${member.social.instagram}" target="_blank">📷</a>` : ''}
+                            ${member.social.twitter ? `<a href="${member.social.twitter}" target="_blank">🐦</a>` : ''}
+                        </div>
+                    ` : ''}
+                    <div class="team-member-actions">
+                        <button class="btn btn-sm btn-secondary edit-team-btn" data-id="${member.id}">Modifica</button>
+                        <button class="btn btn-sm btn-danger delete-team-btn" data-id="${member.id}">Elimina</button>
+                    </div>
+                `;
+                container.appendChild(memberElement);
+            });
+            
+            setupTeamEventListeners();
+        }
+
+        function setupTeamEventListeners() {
+            document.querySelectorAll('.edit-team-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const memberId = this.getAttribute('data-id');
+                    try {
+                        const teamMembers = await loadTeam();
+                        const member = teamMembers.find(m => m.id === memberId);
+                        
+                        if (member) {
+                            document.getElementById('teamMemberId').value = member.id;
+                            document.getElementById('teamNome').value = member.nome;
+                            document.getElementById('teamRuolo').value = member.ruolo;
+                            document.getElementById('teamDescrizione').value = member.descrizione;
+                            document.getElementById('teamOrdine').value = member.ordine;
+                            document.getElementById('teamStatus').value = member.status;
+                            
+                            // Popola social media
+                            document.getElementById('teamFacebook').value = member.social?.facebook || '';
+                            document.getElementById('teamInstagram').value = member.social?.instagram || '';
+                            document.getElementById('teamTwitter').value = member.social?.twitter || '';
+                            
+                            // Mostra anteprima immagine
+                            document.getElementById('teamPreviewImage').src = member.image;
+                            document.getElementById('teamImagePreview').style.display = 'flex';
+                            
+                            document.getElementById('teamModalTitle').textContent = 'Modifica Membro del Team';
+                            teamModal.classList.add('show');
+                            modalBackdrop.classList.add('show');
+                        }
+                    } catch (error) {
+                        console.error("Errore durante il recupero del membro:", error);
+                        alert("Errore durante il recupero del membro");
+                    }
+                });
+            });
+
+            document.querySelectorAll('.delete-team-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    if (confirm('Sei sicuro di voler eliminare questo membro del team?')) {
+                        const memberId = this.getAttribute('data-id');
+                        try {
+                            await deleteTeamMember(memberId);
+                            await loadTeamData();
+                            showSuccessAlert('Membro del team eliminato con successo!', teamSuccessAlert, teamSuccessMessage);
+                        } catch (error) {
+                            console.error("Errore durante l'eliminazione:", error);
+                            alert("Errore durante l'eliminazione del membro");
+                        }
+                    }
+                });
+            });
+        }
+
+        // Team variables e event handlers
+        const teamModal = document.getElementById('teamModal');
+        const addTeamMemberBtn = document.getElementById('addTeamMemberBtn');
+        const closeTeamModal = document.getElementById('closeTeamModal');
+        const cancelTeamBtn = document.getElementById('cancelTeamBtn');
+        const teamForm = document.getElementById('teamForm');
+        const teamSuccessAlert = document.getElementById('teamSuccessAlert');
+        const teamSuccessMessage = document.getElementById('teamSuccessMessage');
+        const teamFileInput = document.getElementById('teamImage');
+        const removeTeamImageBtn = document.getElementById('removeTeamImage');
+
+        // Team handlers
+        addTeamMemberBtn.addEventListener('click', function() {
+            teamForm.reset();
+            document.getElementById('teamMemberId').value = '';
+            document.getElementById('teamImagePreview').style.display = 'none';
+            document.getElementById('teamModalTitle').textContent = 'Aggiungi Membro del Team';
+            teamModal.classList.add('show');
+            modalBackdrop.classList.add('show');
+        });
+
+        closeTeamModal.addEventListener('click', function() {
+            teamModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        cancelTeamBtn.addEventListener('click', function() {
+            teamModal.classList.remove('show');
+            modalBackdrop.classList.remove('show');
+        });
+
+        // Team image handling
+        document.getElementById('teamImageDropzone').addEventListener('click', function() {
+            teamFileInput.click();
+        });
+
+        teamFileInput.addEventListener('change', function() {
+            handleImageSelection(this, 'teamPreviewImage', 'teamImagePreview');
+        });
+
+        removeTeamImageBtn.addEventListener('click', function() {
+            teamFileInput.value = '';
+            document.getElementById('teamImagePreview').style.display = 'none';
+        });
+
+        // Team form submission
+        teamForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const saveBtn = document.getElementById('saveTeamBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Salvataggio...';
+            
+            try {
+                const memberId = document.getElementById('teamMemberId').value;
+                const memberData = {
+                    nome: document.getElementById('teamNome').value,
+                    ruolo: document.getElementById('teamRuolo').value,
+                    descrizione: document.getElementById('teamDescrizione').value,
+                    ordine: parseInt(document.getElementById('teamOrdine').value),
+                    status: parseInt(document.getElementById('teamStatus').value),
+                    social: {
+                        facebook: document.getElementById('teamFacebook').value || null,
+                        instagram: document.getElementById('teamInstagram').value || null,
+                        twitter: document.getElementById('teamTwitter').value || null
+                    }
+                };
+
+                // Handle image upload
+                if (teamFileInput.files[0]) {
+                    // In a real implementation, upload to Firebase Storage
+                    memberData.image = document.getElementById('teamPreviewImage').src;
+                } else if (memberId) {
+                    // Keep existing image
+                    const teamMembers = await loadTeam();
+                    const existingMember = teamMembers.find(m => m.id === memberId);
+                    memberData.image = existingMember?.image || 'img/team/default.jpg';
+                } else {
+                    memberData.image = 'img/team/default.jpg';
+                }
+                
+                if (memberId) {
+                    await updateTeamMember(memberId, memberData);
+                    showSuccessAlert('Membro del team aggiornato con successo!', teamSuccessAlert, teamSuccessMessage);
+                } else {
+                    await addTeamMember(memberData);
+                    showSuccessAlert('Membro del team aggiunto con successo!', teamSuccessAlert, teamSuccessMessage);
+                }
+                
+                await loadTeamData();
+                teamModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+                
+            } catch (error) {
+                console.error("Errore durante il salvataggio:", error);
+                alert(`Errore durante il salvataggio: ${error.message}`);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Salva';
+            }
+        });
+
+        // Save team settings
+        document.getElementById('saveTeamSettingsBtn').addEventListener('click', async function() {
+            try {
+                const settings = {
+                    titolo: document.getElementById('teamTitolo').value,
+                    introduzione: document.getElementById('teamIntro').value
+                };
+                
+                await saveTeamSettings(settings);
+                showSuccessAlert('Impostazioni team salvate con successo!', teamSuccessAlert, teamSuccessMessage);
+            } catch (error) {
+                console.error("Errore durante il salvataggio delle impostazioni:", error);
+                alert(`Errore durante il salvataggio: ${error.message}`);
+            }
         });
 
         // Chiudi i modal se si clicca fuori (solo su modalBackdrop)
@@ -2126,9 +3744,10 @@
             valoreModal.classList.remove('show');
             ingredienteModal.classList.remove('show');
             galleryModal.classList.remove('show');
+            teamModal.classList.remove('show');
             modalBackdrop.classList.remove('show');
         });
-        // Continua con il resto del codice per la gestione delle pizze...
+        
     });
     </script>
 </body>

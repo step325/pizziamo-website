@@ -1,5 +1,5 @@
 import { db, storage, uploadImage } from './firebase-config.js';
-import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 // Riferimento alla collezione carosello
 const carouselCollection = collection(db, 'carousel');
@@ -30,7 +30,7 @@ export async function addCarouselSlide(slideData, imageFile) {
     try {
         // Determina l'ordine della nuova slide
         const slides = await loadCarouselSlides();
-        const newOrder = slides.length > 0 ? Math.max(...slides.map(s => s.order)) + 1 : 1;
+        const newOrder = slides.length > 0 ? Math.max(...slides.map(s => s.order || 0)) + 1 : 1;
         slideData.order = newOrder;
         
         // Carica l'immagine
@@ -97,6 +97,26 @@ export async function updateCarouselOrder(slidesOrder) {
         return true;
     } catch (error) {
         console.error("Errore durante l'aggiornamento dell'ordine:", error);
+        throw error;
+    }
+}
+
+// Funzione per ottenere una singola slide
+export async function getCarouselSlide(slideId) {
+    try {
+        const slideRef = doc(db, 'carousel', slideId);
+        const slideSnap = await getDoc(slideRef);
+        
+        if (slideSnap.exists()) {
+            return {
+                id: slideSnap.id,
+                ...slideSnap.data()
+            };
+        } else {
+            throw new Error("Slide non trovata");
+        }
+    } catch (error) {
+        console.error("Errore durante il recupero della slide:", error);
         throw error;
     }
 }

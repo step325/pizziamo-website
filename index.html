@@ -6,14 +6,7 @@
     <title>PIZZIAMO?! - La tua pizzeria di fiducia</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/index.css">
-    <script type="module" src="js/firebase-config.js"></script>
-    <!-- Firebase App (required) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <!-- Firebase Authentication -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <!-- Firebase Firestore (opzionale, per salvare i dati) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="css/index.css">    <script type="module" src="js/firebase-config.js"></script>
 </head>
 <body>
     <!-- Header con Logo e Menu Principale -->
@@ -212,32 +205,10 @@
     <!-- Team Section -->
     <section id="team" class="section">
         <div class="container">
-            <h2 class="section-title">Il Nostro Team</h2>
-            <div class="team-container">
-                <div class="team-member">
-                    <img src="img/pizzaiolo1.jpg" alt="Francesco">
-                    <h3>Caccia</h3>
-                    <p>Pizzaiolo</p>
-                    <p>Con 20 anni di esperienza, Marco è il maestro dell'impasto perfetto.</p>
-                </div>
-                <div class="team-member">
-                    <img src="img/pizzaiolo1.jpg" alt="Laura Bianchi">
-                    <h3>Laura Bianchi</h3>
-                    <p>Manager</p>
-                    <p>Laura coordina tutto il team per garantire un servizio impeccabile.</p>
-                </div>
-                <div class="team-member">
-                    <img src="img/pizzaiolo2.jpg" alt="Giulio Verdi">
-                    <h3>Giulio Verdi</h3>
-                    <p>Responsabile Consegne</p>
-                    <p>Giulio assicura che la tua pizza arrivi calda e in tempo record.</p>
-                </div>
-                <div class="team-member">
-                    <img src="img/pizzaiolo2.jpg" alt="Sofia Neri">
-                    <h3>Sofia Neri</h3>
-                    <p>Sviluppatrice App</p>
-                    <p>Sofia ha creato l'app PIZZIAMO per rendere i tuoi ordini più semplici.</p>
-                </div>
+            <h2 class="section-title" id="teamTitle">Il Nostro Team</h2>
+            <p class="section-intro" id="teamIntro">Dietro ogni pizza perfetta c'è una squadra appassionata e dedicata. Conosciamo le persone che ogni giorno lavorano con passione per offrirti l'esperienza PIZZIAMO?!</p>
+            <div class="team-container" id="teamContainer">
+                <!-- Team members will be loaded dynamically from Firebase -->
             </div>
         </div>
     </section>
@@ -266,21 +237,211 @@
         </div>
     </footer>
     
-    <script>
+    <script type="module">
+        import { db } from './js/firebase-config.js';
+        import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
         function adminAccess(event) {
-                // Verifica se CTRL e SHIFT sono premuti durante il click
-                if (event.ctrlKey && event.shiftKey) {
-                    window.location.href = 'admin.html';
-                } else {}
+            // Verifica se CTRL e SHIFT sono premuti durante il click
+            if (event.ctrlKey && event.shiftKey) {
+                window.location.href = 'admin.html';
             }
-        // Script ottimizzato per il funzionamento delle FAQ
-        document.addEventListener('DOMContentLoaded', function() {
-            // Funzione per le FAQ
+        }
+        
+        // Rendi la funzione globale per l'onclick inline
+        window.adminAccess = adminAccess;
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            // CARICAMENTO CAROSELLO DA FIREBASE
+            async function loadCarouselFromFirebase() {
+                try {
+                    const carouselCollection = collection(db, 'carousel');
+                    const carouselQuery = query(carouselCollection, orderBy('order'));
+                    const querySnapshot = await getDocs(carouselQuery);
+                    
+                    const slides = [];
+                    querySnapshot.forEach((doc) => {
+                        slides.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+
+                    if (slides.length > 0) {
+                        // Popola il carosello con i dati da Firebase
+                        const carouselSlidesContainer = document.querySelector('.carousel-slides');
+                        const carouselDotsContainer = document.querySelector('.carousel-dots');
+                        
+                        // Pulisci il contenuto esistente
+                        carouselSlidesContainer.innerHTML = '';
+                        carouselDotsContainer.innerHTML = '';
+                        
+                        // Aggiungi le slide
+                        slides.forEach((slide, index) => {
+                            // Crea slide
+                            const slideDiv = document.createElement('div');
+                            slideDiv.className = 'carousel-slide' + (index === 0 ? ' active' : '');
+                            slideDiv.innerHTML = `<img src="${slide.image}" alt="${slide.alt || 'Slide ' + (index + 1)}">`;
+                            carouselSlidesContainer.appendChild(slideDiv);
+                            
+                            // Crea dot
+                            const dot = document.createElement('span');
+                            dot.className = 'dot' + (index === 0 ? ' active' : '');
+                            dot.setAttribute('data-slide', index);
+                            carouselDotsContainer.appendChild(dot);
+                        });
+                        
+                        // Reinizializza il carosello
+                        initializeCarousel();
+                    }                } catch (error) {
+                    console.error("Errore durante il caricamento del carosello:", error);
+                    
+                    // Se è un errore di permessi, mantieni le slide di default
+                    if (error.code === 'permission-denied') {
+                        console.warn("Permessi insufficienti - usando slide di default");
+                    } else {
+                        console.warn("Errore generico - usando slide di default");
+                    }
+                    
+                    // Inizializza comunque il carosello con le slide HTML esistenti
+                    initializeCarousel();
+                }
+            }
+
+            // Chiama la funzione per caricare il carosello
+            await loadCarouselFromFirebase();
+
+            // FUNZIONALITÀ CAROSELLO
+            function initializeCarousel() {
+                const slides = document.querySelectorAll('.carousel-slide');
+                const dots = document.querySelectorAll('.dot');
+                const prevButton = document.querySelector('.carousel-prev');
+                const nextButton = document.querySelector('.carousel-next');
+                let currentSlide = 0;
+                let autoPlayTimer;
+                let isTransitioning = false;
+                
+                function showSlide(n) {
+                    if (isTransitioning) return;
+                    isTransitioning = true;
+                    
+                    if (slides[currentSlide]) {
+                        slides[currentSlide].style.opacity = '0';
+                        setTimeout(() => {
+                            slides[currentSlide].style.display = 'none';
+                        }, 300);
+                    }
+                    
+                    dots.forEach(dot => {
+                        dot.classList.remove('active');
+                    });
+                    
+                    setTimeout(() => {
+                        slides.forEach((slide, i) => {
+                            if (i !== n) {
+                                slide.style.display = 'none';
+                                slide.classList.remove('active');
+                            }
+                        });
+                        
+                        slides[n].style.display = 'block';
+                        setTimeout(() => {
+                            slides[n].style.opacity = '1';
+                            slides[n].classList.add('active');
+                        }, 50);
+                        
+                        dots[n].classList.add('active');
+                        currentSlide = n;
+                        isTransitioning = false;
+                    }, 300);
+                }
+                
+                function nextSlide() {
+                    let newSlide = currentSlide + 1;
+                    if (newSlide >= slides.length) {
+                        newSlide = 0;
+                    }
+                    showSlide(newSlide);
+                }
+                
+                function prevSlide() {
+                    let newSlide = currentSlide - 1;
+                    if (newSlide < 0) {
+                        newSlide = slides.length - 1;
+                    }
+                    showSlide(newSlide);
+                }
+                
+                prevButton.addEventListener('click', () => {
+                    clearInterval(autoPlayTimer);
+                    prevSlide();
+                    startAutoPlay();
+                });
+                
+                nextButton.addEventListener('click', () => {
+                    clearInterval(autoPlayTimer);
+                    nextSlide();
+                    startAutoPlay();
+                });
+                
+                dots.forEach((dot, index) => {
+                    dot.addEventListener('click', () => {
+                        if (currentSlide !== index) {
+                            clearInterval(autoPlayTimer);
+                            showSlide(index);
+                            startAutoPlay();
+                        }
+                    });
+                });
+                
+                function startAutoPlay() {
+                    autoPlayTimer = setInterval(nextSlide, 5000);
+                }
+                
+                startAutoPlay();
+                
+                // Touch support
+                const carouselContainer = document.querySelector('.carousel-container');
+                let touchStartX = 0;
+                let touchEndX = 0;
+                
+                carouselContainer.addEventListener('touchstart', (e) => {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, false);
+                
+                carouselContainer.addEventListener('touchend', (e) => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    handleSwipe();
+                }, false);
+                
+                function handleSwipe() {
+                    const threshold = 50;
+                    if (touchEndX < touchStartX - threshold) {
+                        clearInterval(autoPlayTimer);
+                        nextSlide();
+                        startAutoPlay();
+                    }
+                    if (touchEndX > touchStartX + threshold) {
+                        clearInterval(autoPlayTimer);
+                        prevSlide();
+                        startAutoPlay();
+                    }
+                }
+                
+                carouselContainer.addEventListener('mouseenter', () => {
+                    clearInterval(autoPlayTimer);
+                });
+                
+                carouselContainer.addEventListener('mouseleave', () => {
+                    startAutoPlay();
+                });
+            }
+
+            // FUNZIONALITÀ FAQ
             document.querySelectorAll('.faq-question').forEach(question => {
                 question.addEventListener('click', () => {
                     const item = question.parentNode;
                     
-                    // Chiudi tutti gli altri elementi FAQ aperti
                     document.querySelectorAll('.faq-item.active').forEach(activeItem => {
                         if (activeItem !== item) {
                             activeItem.classList.remove('active');
@@ -289,7 +450,6 @@
                         }
                     });
                     
-                    // Apri/chiudi l'elemento cliccato
                     item.classList.toggle('active');
                     const answer = item.querySelector('.faq-answer');
                     
@@ -302,147 +462,37 @@
                     }
                 });
             });
+
+            // MOBILE BUTTON VISIBILITY
+            function checkMobile() {
+                const mobileButton = document.querySelector('.mobile-only');
+                if (window.innerWidth <= 768) {
+                    mobileButton.style.display = 'flex';
+                } else {
+                    mobileButton.style.display = 'none';
+                }
+            }
             
-            // Funzione ottimizzata per il carosello
-            const slides = document.querySelectorAll('.carousel-slide');
-            const dots = document.querySelectorAll('.dot');
-            const prevButton = document.querySelector('.carousel-prev');
-            const nextButton = document.querySelector('.carousel-next');
-            let currentSlide = 0;
-            let autoPlayTimer;
-            let isTransitioning = false;
+            checkMobile();
+            window.addEventListener('resize', checkMobile);
             
-            // Funzione per mostrare uno slide specifico
-            function showSlide(n) {
-                if (isTransitioning) return;
-                isTransitioning = true;
+            // HEADER SCROLL EFFECT
+            let lastScrollTop = 0;
+            const header = document.querySelector('header');
+            
+            window.addEventListener('scroll', () => {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                 
-                // Nascondi lo slide attuale
-                if (slides[currentSlide]) {
-                    slides[currentSlide].style.opacity = '0';
-                    setTimeout(() => {
-                        slides[currentSlide].style.display = 'none';
-                    }, 300);
+                if (scrollTop > lastScrollTop && scrollTop > 300) {
+                    header.style.transform = 'translateY(-100%)';
+                } else {
+                    header.style.transform = 'translateY(0)';
                 }
                 
-                // Rimuovi 'active' da tutti i dots
-                dots.forEach(dot => {
-                    dot.classList.remove('active');
-                });
-                
-                // Dopo la transizione di fade-out, mostra lo slide corrente con fade-in
-                setTimeout(() => {
-                    // Nascondi tutti gli altri slide
-                    slides.forEach((slide, i) => {
-                        if (i !== n) {
-                            slide.style.display = 'none';
-                            slide.classList.remove('active');
-                        }
-                    });
-                    
-                    // Mostra il nuovo slide
-                    slides[n].style.display = 'block';
-                    setTimeout(() => {
-                        slides[n].style.opacity = '1';
-                        slides[n].classList.add('active');
-                    }, 50);
-                    
-                    dots[n].classList.add('active');
-                    currentSlide = n;
-                    isTransitioning = false;
-                }, 300);
-            }
-            
-            // Funzione per passare allo slide successivo
-            function nextSlide() {
-                let newSlide = currentSlide + 1;
-                if (newSlide >= slides.length) {
-                    newSlide = 0;
-                }
-                showSlide(newSlide);
-            }
-            
-            // Funzione per passare allo slide precedente
-            function prevSlide() {
-                let newSlide = currentSlide - 1;
-                if (newSlide < 0) {
-                    newSlide = slides.length - 1;
-                }
-                showSlide(newSlide);
-            }
-            
-            // Event listener per i pulsanti prev/next
-            prevButton.addEventListener('click', () => {
-                clearInterval(autoPlayTimer);
-                prevSlide();
-                startAutoPlay();
-            });
-            
-            nextButton.addEventListener('click', () => {
-                clearInterval(autoPlayTimer);
-                nextSlide();
-                startAutoPlay();
-            });
-            
-            // Event listener per i dots
-            dots.forEach((dot, index) => {
-                dot.addEventListener('click', () => {
-                    if (currentSlide !== index) {
-                        clearInterval(autoPlayTimer);
-                        showSlide(index);
-                        startAutoPlay();
-                    }
-                });
-            });
-            
-            // Funzione per avviare l'auto-play
-            function startAutoPlay() {
-                autoPlayTimer = setInterval(nextSlide, 5000);
-            }
-            
-            // Avvia l'auto-play al caricamento
-            startAutoPlay();
-            
-            // Aggiungi interazione touch per dispositivi mobili
-            const carouselContainer = document.querySelector('.carousel-container');
-            let touchStartX = 0;
-            let touchEndX = 0;
-            
-            carouselContainer.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
+                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
             }, false);
-            
-            carouselContainer.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
-                handleSwipe();
-            }, false);
-            
-            function handleSwipe() {
-                const threshold = 50; // Soglia minima per considerare uno swipe
-                if (touchEndX < touchStartX - threshold) {
-                    // Swipe verso sinistra
-                    clearInterval(autoPlayTimer);
-                    nextSlide();
-                    startAutoPlay();
-                }
-                if (touchEndX > touchStartX + threshold) {
-                    // Swipe verso destra
-                    clearInterval(autoPlayTimer);
-                    prevSlide();
-                    startAutoPlay();
-                }
-            }
-            
-            // Pausa autoplay quando il mouse è sopra il carosello
-            carouselContainer.addEventListener('mouseenter', () => {
-                clearInterval(autoPlayTimer);
-            });
-            
-            carouselContainer.addEventListener('mouseleave', () => {
-                startAutoPlay();
-            });
-            
-            // Smooth scroll ottimizzato per i link di navigazione
+
+            // SMOOTH SCROLL
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -457,40 +507,83 @@
                             behavior: 'smooth'
                         });
                     }
-                });
-            });
+                });            });
 
-            // Funzione per gestire il pulsante di chiamata su mobile
-            function checkMobile() {
-                const mobileButton = document.querySelector('.mobile-only');
-                if (window.innerWidth <= 768) {
-                    mobileButton.style.display = 'flex';
-                } else {
-                    mobileButton.style.display = 'none';
+            // TEAM LOADING FROM FIREBASE
+            async function loadTeamFromFirebase() {
+                try {
+                    // Import Firebase modules
+                    const { auth, db } = await import('./js/firebase-config.js');
+                    const { collection, getDocs, query, where, orderBy } = await import('https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js');
+                    
+                    // Load team settings
+                    const teamSettingsRef = collection(db, 'team-settings');
+                    const teamSettingsSnapshot = await getDocs(teamSettingsRef);
+                    
+                    if (!teamSettingsSnapshot.empty) {
+                        const settings = teamSettingsSnapshot.docs[0].data();
+                        if (settings.titolo) {
+                            document.getElementById('teamTitle').textContent = settings.titolo;
+                        }
+                        if (settings.introduzione) {
+                            document.getElementById('teamIntro').textContent = settings.introduzione;
+                        }
+                    }
+                    
+                    // Load team members
+                    const teamRef = collection(db, 'team');
+                    const teamQuery = query(
+                        teamRef, 
+                        where('status', '==', 1), // Only active members
+                        orderBy('ordine', 'asc')
+                    );
+                    const teamSnapshot = await getDocs(teamQuery);
+                    
+                    const teamContainer = document.getElementById('teamContainer');
+                    teamContainer.innerHTML = '';
+                    
+                    teamSnapshot.forEach((doc) => {
+                        const member = doc.data();
+                        const memberElement = document.createElement('div');
+                        memberElement.className = 'team-member';
+                        
+                        // Build social media links
+                        let socialHtml = '';
+                        if (member.social) {
+                            socialHtml = '<div class="team-social">';
+                            if (member.social.facebook) {
+                                socialHtml += `<a href="${member.social.facebook}" target="_blank">📘</a>`;
+                            }
+                            if (member.social.instagram) {
+                                socialHtml += `<a href="${member.social.instagram}" target="_blank">📷</a>`;
+                            }
+                            if (member.social.twitter) {
+                                socialHtml += `<a href="${member.social.twitter}" target="_blank">🐦</a>`;
+                            }
+                            socialHtml += '</div>';
+                        }
+                        
+                        memberElement.innerHTML = `
+                            <img src="${member.image || 'img/team/default.jpg'}" alt="${member.nome}">
+                            <h3>${member.nome}</h3>
+                            <p style="font-weight: 600; color: var(--primary);">${member.ruolo}</p>
+                            <p>${member.descrizione}</p>
+                            ${socialHtml}
+                        `;
+                        
+                        teamContainer.appendChild(memberElement);
+                    });
+                    
+                    console.log('Team loaded successfully');
+                    
+                } catch (error) {
+                    console.error('Error loading team from Firebase:', error);
+                    // Keep default content if Firebase fails
                 }
             }
-            
-            // Controlla al caricamento e quando si ridimensiona la finestra
-            checkMobile();
-            window.addEventListener('resize', checkMobile);
-            
-            // Effetto di scrolling per l'header
-            let lastScrollTop = 0;
-            const header = document.querySelector('header');
-            
-            window.addEventListener('scroll', () => {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                
-                if (scrollTop > lastScrollTop && scrollTop > 300) {
-                    // Scroll verso il basso
-                    header.style.transform = 'translateY(-100%)';
-                } else {
-                    // Scroll verso l'alto
-                    header.style.transform = 'translateY(0)';
-                }
-                
-                lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-            }, false);
+
+            // Load team data when page loads
+            loadTeamFromFirebase();
         });
     </script>
 </body>

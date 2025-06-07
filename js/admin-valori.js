@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+import { collection, getDocs, doc, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, writeBatch } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
 
 // Riferimento alla collezione valori
 const valoriCollection = collection(db, 'valori');
@@ -30,7 +30,7 @@ export async function addValore(valoreData) {
     try {
         // Determina l'ordine del nuovo valore
         const valori = await loadValori();
-        const newOrder = valori.length > 0 ? Math.max(...valori.map(v => v.order)) + 1 : 1;
+        const newOrder = valori.length > 0 ? Math.max(...valori.map(v => v.order || 0)) + 1 : 1;
         valoreData.order = newOrder;
         
         const docRef = await addDoc(valoriCollection, valoreData);
@@ -67,6 +67,44 @@ export async function deleteValore(valoreId) {
         return valoreId;
     } catch (error) {
         console.error("Errore durante l'eliminazione del valore:", error);
+        throw error;
+    }
+}
+
+// Funzione per ottenere un singolo valore
+export async function getValore(valoreId) {
+    try {
+        const valoreRef = doc(db, 'valori', valoreId);
+        const valoreSnap = await getDoc(valoreRef);
+        
+        if (valoreSnap.exists()) {
+            return {
+                id: valoreSnap.id,
+                ...valoreSnap.data()
+            };
+        } else {
+            throw new Error("Valore non trovato");
+        }
+    } catch (error) {
+        console.error("Errore durante il recupero del valore:", error);
+        throw error;
+    }
+}
+
+// Funzione per aggiornare l'ordine dei valori
+export async function updateValoriOrder(valoriOrder) {
+    try {
+        const batch = writeBatch(db);
+        
+        valoriOrder.forEach((item, index) => {
+            const valoreRef = doc(db, 'valori', item.id);
+            batch.update(valoreRef, { order: index + 1 });
+        });
+        
+        await batch.commit();
+        return true;
+    } catch (error) {
+        console.error("Errore durante l'aggiornamento dell'ordine:", error);
         throw error;
     }
 }

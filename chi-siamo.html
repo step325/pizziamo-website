@@ -6,13 +6,7 @@
     <title>Chi siamo - PIZZIAMO?! - La tua pizzeria di fiducia</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/chi-siamo.css">
-    <!-- Firebase App (required) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <!-- Firebase Authentication -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <!-- Firebase Firestore (opzionale, per salvare i dati) -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="css/chi-siamo.css">    <!-- Firebase modules are loaded via ES6 imports in the script -->
 </head>
 <body>
     <!-- Header con Logo e Menu Principale -->
@@ -124,7 +118,7 @@
                 <div class="ingredienti-grid">
                     <div class="ingrediente-item">
                         <div class="ingrediente-img">
-                            <img src="img/pomodoro.jpg" alt="Pomodori San Marzano">
+                            <img src="img/pizza1.jpg" alt="Pomodori San Marzano">
                         </div>
                         <div class="ingrediente-info">
                             <h3>Pomodori San Marzano DOP</h3>
@@ -135,7 +129,7 @@
                     
                     <div class="ingrediente-item">
                         <div class="ingrediente-img">
-                            <img src="img/mozzarella.jpg" alt="Mozzarella di Bufala">
+                            <img src="img/pizza2.jpg" alt="Mozzarella di Bufala">
                         </div>
                         <div class="ingrediente-info">
                             <h3>Mozzarella di Bufala</h3>
@@ -146,7 +140,7 @@
                     
                     <div class="ingrediente-item">
                         <div class="ingrediente-img">
-                            <img src="img/farina.jpg" alt="Farina per l'impasto">
+                            <img src="img/pizza3.jpg" alt="Farina per l'impasto">
                         </div>
                         <div class="ingrediente-info">
                             <h3>Farina Speciale</h3>
@@ -157,7 +151,7 @@
                     
                     <div class="ingrediente-item">
                         <div class="ingrediente-img">
-                            <img src="img/olio.jpg" alt="Olio Extra Vergine">
+                            <img src="img/pizza4.jpg" alt="Olio Extra Vergine">
                         </div>
                         <div class="ingrediente-info">
                             <h3>Olio Extra Vergine d'Oliva</h3>
@@ -178,30 +172,26 @@
             <p style="text-align: center; max-width: 800px; margin: 0 auto var(--spacing-lg);">Il nostro locale è stato progettato per offrirti un ambiente accogliente dove gustare le nostre specialità. Un mix di design moderno e atmosfera familiare che ti farà sentire subito a tuo agio.</p>
             
             <div class="gallery-container">
-                <div class="gallery-grid">
-                    <div class="gallery-item" data-img="img/locale1.jpg">
-                        <img src="img/locale1.jpg" alt="Esterno del locale">
+                <div class="gallery-grid">                    <div class="gallery-item" data-img="img/pizza5.jpg">
+                        <img src="img/pizza5.jpg" alt="Esterno del locale">
                         <div class="gallery-overlay">
                             <div class="gallery-caption">L'esterno del nostro locale</div>
                         </div>
                     </div>
-                    
-                    <div class="gallery-item" data-img="img/locale2.jpg">
-                        <img src="img/locale2.jpg" alt="Area principale">
+                      <div class="gallery-item" data-img="img/pizza.jpg">
+                        <img src="img/pizza.jpg" alt="Area principale">
                         <div class="gallery-overlay">
                             <div class="gallery-caption">La sala principale</div>
                         </div>
                     </div>
-                    
-                    <div class="gallery-item" data-img="img/locale3.jpg">
-                        <img src="img/locale3.jpg" alt="Forno a legna">
+                      <div class="gallery-item" data-img="img/pizzaiolo1.jpg">
+                        <img src="img/pizzaiolo1.jpg" alt="Forno a legna">
                         <div class="gallery-overlay">
                             <div class="gallery-caption">Il nostro forno a legna</div>
                         </div>
                     </div>
-                    
-                    <div class="gallery-item" data-img="img/locale4.jpg">
-                        <img src="img/locale4.jpg" alt="Dettaglio tavolo">
+                      <div class="gallery-item" data-img="img/pizzaiolo2.jpg">
+                        <img src="img/pizzaiolo2.jpg" alt="Dettaglio tavolo">
                         <div class="gallery-overlay">
                             <div class="gallery-caption">I nostri tavoli</div>
                         </div>
@@ -210,16 +200,16 @@
             </div>
         </div>
     </section>
-    
-    <!-- Team Section -->
+      <!-- Team Section -->
     <section id="team" class="section">
         <div class="container">
-            <h2 class="section-title">Il Nostro Team</h2>
+            <h2 class="section-title" id="teamTitle">Il Nostro Team</h2>
             
             <div class="team-ampliato">
-                <p style="text-align: center; max-width: 800px; margin: 0 auto var(--spacing-lg);">Dietro ogni pizza perfetta c'è una squadra appassionata e dedicata. Conosciamo le persone che ogni giorno lavorano con passione per offrirti l'esperienza PIZZIAMO?!</p>
+                <p id="teamIntro" style="text-align: center; max-width: 800px; margin: 0 auto var(--spacing-lg);">Dietro ogni pizza perfetta c'è una squadra appassionata e dedicata. Conosciamo le persone che ogni giorno lavorano con passione per offrirti l'esperienza PIZZIAMO?!</p>
                 
-                <div class="team-container">
+                <div class="team-container" id="teamContainer">
+                    <!-- Team members will be loaded dynamically from Firebase -->
                     <div class="team-member">
                         <img src="img/pizzaiolo1.jpg" alt="Marco">
                         <h3>Marco</h3>
@@ -318,67 +308,342 @@
         </div>
     </div>
     
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Lightbox per la galleria
-            const galleryItems = document.querySelectorAll('.gallery-item');
-            const lightbox = document.getElementById('gallery-lightbox');
-            const lightboxImg = document.getElementById('lightbox-img');
-            const lightboxClose = document.getElementById('lightbox-close');
-            
-            // Apertura lightbox
-            galleryItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    const imgSrc = this.getAttribute('data-img');
-                    const imgAlt = this.querySelector('img').getAttribute('alt');
+    <script type="module">
+        import { db } from './js/firebase-config.js';
+        import { collection, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js";
+
+        document.addEventListener('DOMContentLoaded', async function() {            // CARICA STORIA DA FIREBASE
+            async function loadStoriaFromFirebase() {
+                try {
+                    const storiaDocRef = doc(db, 'settings', 'storia');
+                    const docSnap = await getDoc(storiaDocRef);
                     
-                    lightboxImg.src = imgSrc;
-                    lightboxImg.alt = imgAlt;
-                    
-                    lightbox.classList.add('active');
-                    document.body.style.overflow = 'hidden'; // Prevent scrolling
-                });
-            });
-            
-            // Chiusura lightbox con il pulsante
-            lightboxClose.addEventListener('click', function() {
-                lightbox.classList.remove('active');
-                document.body.style.overflow = 'auto'; // Re-enable scrolling
-            });
-            
-            // Chiusura lightbox cliccando all'esterno dell'immagine
-            lightbox.addEventListener('click', function(e) {
-                if (e.target === lightbox) {
-                    lightbox.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            });
-            
-            // Chiusura lightbox con tasto ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && lightbox.classList.contains('active')) {
-                    lightbox.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            });
-            
-            // Smooth scroll per i link di navigazione
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        const headerHeight = document.querySelector('header').offsetHeight;
-                        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset;
+                    if (docSnap.exists()) {
+                        const storia = docSnap.data();
                         
-                        window.scrollTo({
-                            top: targetPosition - headerHeight - 20,
-                            behavior: 'smooth'
+                        // Aggiorna titolo
+                        const storiaTitolo = document.querySelector('#storia .section-title');
+                        if (storiaTitolo && storia.titolo) {
+                            storiaTitolo.textContent = storia.titolo;
+                        }
+                        
+                        // Aggiorna sottotitolo
+                        const storiaSubtitle = document.querySelector('#storia .section-subtitle');
+                        if (storiaSubtitle && storia.sottotitolo) {
+                            storiaSubtitle.textContent = storia.sottotitolo;
+                        }
+                        
+                        // Aggiorna contenuto
+                        const storiaContent = document.querySelector('.storia-content');
+                        if (storiaContent && storia.contenuto) {
+                            // Mantieni il sottotitolo e sostituisci solo i paragrafi
+                            storiaContent.innerHTML = `
+                                <h3 class="section-subtitle">${storia.sottotitolo || 'Come è iniziato tutto'}</h3>
+                                ${storia.contenuto}
+                            `;
+                        }
+                        
+                        // Aggiorna immagine
+                        const storiaImage = document.querySelector('.storia-image img');
+                        if (storiaImage && storia.immagine) {
+                            storiaImage.src = storia.immagine;
+                        }
+                        
+                        // Aggiorna anno
+                        const storiaAnno = document.querySelector('.storia-anno');
+                        if (storiaAnno && storia.anno) {
+                            storiaAnno.textContent = storia.anno;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Errore durante il caricamento della storia:", error);
+                    // Usa il contenuto statico esistente in caso di errore
+                    if (error.code === 'permission-denied') {
+                        console.warn("Permessi insufficienti per la storia - usando contenuto statico");
+                    }
+                }
+            }            // CARICA VALORI DA FIREBASE
+            async function loadValoriFromFirebase() {
+                try {
+                    const valoriCollection = collection(db, 'valori');
+                    const valoriQuery = query(valoriCollection, orderBy('order'));
+                    const querySnapshot = await getDocs(valoriQuery);
+                    
+                    const valori = [];
+                    querySnapshot.forEach((doc) => {
+                        valori.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+
+                    if (valori.length > 0) {
+                        const valoriContainer = document.querySelector('.valori-container');
+                        valoriContainer.innerHTML = '';
+                        
+                        valori.forEach(valore => {
+                            const valoreCard = document.createElement('div');
+                            valoreCard.className = 'valore-card';
+                            valoreCard.innerHTML = `
+                                <div class="valore-icona">${valore.icon}</div>
+                                <h3>${valore.title}</h3>
+                                <p>${valore.description}</p>
+                            `;
+                            valoriContainer.appendChild(valoreCard);
                         });
                     }
+                } catch (error) {
+                    console.error("Errore durante il caricamento dei valori:", error);
+                    // Usa i valori statici esistenti in caso di errore
+                    if (error.code === 'permission-denied') {
+                        console.warn("Permessi insufficienti per i valori - usando contenuto statico");
+                    }
+                }
+            }            // CARICA INGREDIENTI DA FIREBASE
+            async function loadIngredientiFromFirebase() {
+                try {
+                    // Carica impostazioni
+                    const settingsRef = doc(db, 'settings', 'ingredienti');
+                    const settingsSnap = await getDoc(settingsRef);
+                    
+                    if (settingsSnap.exists()) {
+                        const settings = settingsSnap.data();
+                        
+                        const ingredientiTitolo = document.querySelector('#ingredienti .section-title');
+                        if (ingredientiTitolo && settings.titolo) {
+                            ingredientiTitolo.textContent = settings.titolo;
+                        }
+                        
+                        const ingredientiIntro = document.querySelector('.ingredienti-intro p');
+                        if (ingredientiIntro && settings.introduzione) {
+                            ingredientiIntro.textContent = settings.introduzione;
+                        }
+                    }
+                    
+                    // Carica ingredienti
+                    const ingredientiCollection = collection(db, 'ingredienti');
+                    const ingredientiQuery = query(ingredientiCollection, orderBy('order'));
+                    const querySnapshot = await getDocs(ingredientiQuery);
+                    
+                    const ingredienti = [];
+                    querySnapshot.forEach((doc) => {
+                        ingredienti.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+
+                    if (ingredienti.length > 0) {
+                        const ingredientiGrid = document.querySelector('.ingredienti-grid');
+                        ingredientiGrid.innerHTML = '';
+                        
+                        ingredienti.forEach(ingrediente => {
+                            const ingredienteItem = document.createElement('div');
+                            ingredienteItem.className = 'ingrediente-item';
+                            ingredienteItem.innerHTML = `
+                                <div class="ingrediente-img">
+                                    <img src="${ingrediente.immagine}" alt="${ingrediente.titolo}">
+                                </div>
+                                <div class="ingrediente-info">
+                                    <h3>${ingrediente.titolo}</h3>
+                                    <p>${ingrediente.descrizione}</p>
+                                    <span class="ingrediente-badge">${ingrediente.badge}</span>
+                                </div>
+                            `;
+                            ingredientiGrid.appendChild(ingredienteItem);
+                        });
+                    }
+                } catch (error) {
+                    console.error("Errore durante il caricamento degli ingredienti:", error);
+                    if (error.code === 'permission-denied') {
+                        console.log("Permessi Firebase non configurati - usando contenuto statico HTML per ingredienti");
+                        // Il contenuto statico HTML rimane come fallback
+                    }
+                }
+            }
+
+            // CARICA GALLERIA DA FIREBASE
+            async function loadGalleryFromFirebase() {
+                try {
+                    // Carica impostazioni
+                    const settingsRef = doc(db, 'settings', 'locale');
+                    const settingsSnap = await getDoc(settingsRef);
+                    
+                    if (settingsSnap.exists()) {
+                        const settings = settingsSnap.data();
+                        
+                        const localeTitolo = document.querySelector('#locale .section-title');
+                        if (localeTitolo && settings.titolo) {
+                            localeTitolo.textContent = settings.titolo;
+                        }
+                        
+                        const localeIntro = document.querySelector('#locale > .container > p');
+                        if (localeIntro && settings.introduzione) {
+                            localeIntro.textContent = settings.introduzione;
+                        }
+                    }
+                    
+                    // Carica galleria
+                    const galleryCollection = collection(db, 'gallery');
+                    const galleryQuery = query(galleryCollection, orderBy('order'));
+                    const querySnapshot = await getDocs(galleryQuery);
+                    
+                    const images = [];
+                    querySnapshot.forEach((doc) => {
+                        images.push({
+                            id: doc.id,
+                            ...doc.data()
+                        });
+                    });
+
+                    if (images.length > 0) {
+                        const galleryGrid = document.querySelector('.gallery-grid');
+                        galleryGrid.innerHTML = '';
+                        
+                        images.forEach((image, index) => {
+                            const galleryItem = document.createElement('div');
+                            galleryItem.className = 'gallery-item';
+                            galleryItem.setAttribute('data-img', image.url);
+                            galleryItem.innerHTML = `
+                                <img src="${image.url}" alt="${image.alt}">
+                                <div class="gallery-overlay">
+                                    <div class="gallery-caption">${image.caption}</div>
+                                </div>
+                            `;
+                            galleryGrid.appendChild(galleryItem);
+                        });
+                        
+                        // Reinizializza i listener per la galleria
+                        initializeGalleryListeners();
+                    }                } catch (error) {
+                    console.error("Errore durante il caricamento della galleria:", error);
+                    if (error.code === 'permission-denied') {
+                        console.log("Permessi Firebase non configurati - usando contenuto statico HTML per galleria");
+                        // Il contenuto statico HTML rimane come fallback
+                    }
+                }
+            }
+
+            // Funzione per inizializzare i listener della galleria
+            function initializeGalleryListeners() {
+                const galleryItems = document.querySelectorAll('.gallery-item');
+                const lightbox = document.getElementById('gallery-lightbox');
+                const lightboxImg = document.getElementById('lightbox-img');
+                const lightboxClose = document.getElementById('lightbox-close');
+                  galleryItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        const imgSrc = this.getAttribute('data-img');
+                        const imgAlt = this.querySelector('img').getAttribute('alt');
+                        
+                        lightboxImg.src = imgSrc;
+                        lightboxImg.alt = imgAlt;
+                        
+                        lightbox.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    });
                 });
-            });
+                
+                lightboxClose.addEventListener('click', function() {
+                    lightbox.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+                
+                lightbox.addEventListener('click', function(e) {
+                    if (e.target === lightbox) {
+                        lightbox.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }            // LOAD TEAM DATA FROM FIREBASE
+            async function loadTeamFromFirebase() {
+                try {
+                    // Load team settings
+                    const settingsRef = doc(db, 'settings', 'team');
+                    const settingsSnap = await getDoc(settingsRef);
+                    
+                    if (settingsSnap.exists()) {
+                        const settings = settingsSnap.data();
+                        const teamTitle = document.getElementById('teamTitle');
+                        if (teamTitle && settings.titolo) {
+                            teamTitle.textContent = settings.titolo;
+                        }
+                        
+                        const teamIntro = document.getElementById('teamIntro');
+                        if (teamIntro && settings.introduzione) {
+                            teamIntro.textContent = settings.introduzione;
+                        }
+                    }
+                    
+                    // Load team members
+                    const teamRef = collection(db, 'team');
+                    const q = query(teamRef, orderBy('ordine', 'asc'));
+                    const querySnapshot = await getDocs(q);
+                    
+                    const teamContainer = document.getElementById('teamContainer');
+                    if (!teamContainer) return;
+                    
+                    if (querySnapshot.empty) {
+                        console.log("Nessun membro del team trovato - usando contenuto statico");
+                        return;
+                    }
+                    
+                    // Only clear and replace if we have Firebase data
+                    teamContainer.innerHTML = '';
+                    
+                    querySnapshot.forEach((doc) => {
+                        const member = doc.data();
+                        
+                        // Only show active team members
+                        if (member.status !== 1) return;
+                        
+                        const memberElement = document.createElement('div');
+                        memberElement.className = 'team-member';
+                        
+                        // Build social media links
+                        let socialLinks = '';
+                        if (member.social) {
+                            if (member.social.facebook) {
+                                socialLinks += `<a href="${member.social.facebook}" target="_blank">F</a>`;
+                            }
+                            if (member.social.instagram) {
+                                socialLinks += `<a href="${member.social.instagram}" target="_blank">I</a>`;
+                            }
+                            if (member.social.twitter) {
+                                socialLinks += `<a href="${member.social.twitter}" target="_blank">T</a>`;
+                            }
+                        }
+                        
+                        memberElement.innerHTML = `
+                            <img src="${member.image || 'img/pizzaiolo1.jpg'}" alt="${member.nome}">
+                            <h3>${member.nome}</h3>
+                            <p>${member.ruolo}</p>
+                            <p>${member.descrizione}</p>
+                            ${socialLinks ? `<div class="team-social">${socialLinks}</div>` : ''}
+                        `;
+                        
+                        teamContainer.appendChild(memberElement);
+                    });
+                    
+                } catch (error) {
+                    console.error('Errore durante il caricamento del team:', error);
+                    if (error.code === 'permission-denied') {
+                        console.warn("Permessi insufficienti per il team - usando contenuto statico");
+                    } else {
+                        console.warn("Errore Firebase per il team - usando contenuto statico");
+                    }
+                    // Keep the existing static HTML content instead of clearing it
+                }
+            }
+            
+            // Initialize gallery listeners for static content
+            initializeGalleryListeners();
+            
+            // Load all Firebase content
+            loadStoriaFromFirebase();
+            loadValoriFromFirebase();
+            loadIngredientiFromFirebase();
+            loadGalleryFromFirebase();
+            loadTeamFromFirebase();
         });
     </script>
 </body>
