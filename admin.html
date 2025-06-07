@@ -56,6 +56,9 @@
                 document.getElementById('teamTitolo').value = settings.titolo || 'Il Nostro Team';
                 document.getElementById('teamIntro').value = settings.introduzione || 'Dietro ogni pizza perfetta c\'è una squadra appassionata e dedicata. Conosciamo le persone che ogni giorno lavorano con passione per offrirti l\'esperienza PIZZIAMO?!';
                 
+                const container = document.getElementById('teamContainer');
+                if (container) container.innerHTML = ''; // Clear container
+
                 const team = await loadTeam();
                 displayTeam(team);
             } catch (error) {
@@ -99,6 +102,65 @@
                     </div>
                 `;
                 container.appendChild(memberElement);
+            });
+            setupTeamEventListeners(); // Call event listeners setup
+        }
+
+        // Function to setup team event listeners for edit/delete buttons
+        function setupTeamEventListeners() {
+            document.querySelectorAll('.edit-team-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const memberId = this.getAttribute('data-id');
+                    try {
+                        const team = await loadTeam(); // Assumes loadTeam is available
+                        const member = team.find(m => m.id === memberId);
+
+                        if (member) {
+                            document.getElementById('teamMemberId').value = member.id;
+                            document.getElementById('teamNome').value = member.nome;
+                            document.getElementById('teamRuolo').value = member.ruolo;
+                            document.getElementById('teamDescrizione').value = member.descrizione;
+                            document.getElementById('teamOrdine').value = member.ordine;
+                            document.getElementById('teamStatus').value = member.status;
+
+                            // Social links
+                            document.getElementById('teamFacebook').value = member.social?.facebook || '';
+                            document.getElementById('teamInstagram').value = member.social?.instagram || '';
+                            document.getElementById('teamTwitter').value = member.social?.twitter || '';
+
+                            // Image preview
+                            if (member.image) {
+                                document.getElementById('teamPreviewImage').src = member.image;
+                                document.getElementById('teamImagePreview').style.display = 'flex';
+                            }
+
+                            document.getElementById('teamModalTitle').textContent = 'Modifica Membro del Team';
+                            // Ensure teamModal and modalBackdrop are accessible here or passed as parameters
+                            document.getElementById('teamModal').classList.add('show');
+                            document.getElementById('modalBackdrop').classList.add('show');
+                        }
+                    } catch (error) {
+                        console.error("Errore durante il recupero del membro:", error);
+                        alert("Errore durante il recupero del membro del team");
+                    }
+                });
+            });
+
+            document.querySelectorAll('.delete-team-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    if (confirm('Sei sicuro di voler eliminare questo membro del team?')) {
+                        const memberId = this.getAttribute('data-id');
+                        try {
+                            await deleteTeamMember(memberId); // Assumes deleteTeamMember is available
+                            await loadTeamData(); // Reload data
+                            // Ensure showSuccessAlert, teamSuccessAlert, teamSuccessMessage are accessible
+                            showSuccessAlert('Membro del team eliminato con successo!', document.getElementById('teamSuccessAlert'), document.getElementById('teamSuccessMessage'));
+                        } catch (error) {
+                            console.error("Errore durante l'eliminazione:", error);
+                            alert("Errore durante l'eliminazione del membro del team");
+                        }
+                    }
+                });
             });
         }
 
@@ -327,9 +389,10 @@
                 tableBody.innerHTML = '';
                 
                 data.forEach(pizza => {
+                    console.log('Loading image for pizza (initializeAdminPanel):', pizza.name, 'URL:', pizza.image);
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td><img src="${pizza.image}" alt="${pizza.name}" class="img-thumbnail"></td>
+                        <td><img src="${pizza.image || './img/pizza1.jpg'}" alt="${pizza.name}" class="img-thumbnail"></td>
                         <td>${pizza.name}</td>
                         <td>${categoryMap[pizza.category]}</td>
                         <td>€ ${pizza.price.toFixed(2)}</td>
@@ -405,6 +468,8 @@
             // SEZIONE CAROSELLO
             async function loadCarouselData() {
                 try {
+                    const container = document.getElementById('carouselContainer');
+                    if (container) container.innerHTML = ''; // Clear container
                     const slides = await loadCarouselSlides();
                     displayCarouselSlides(slides);
                 } catch (error) {
@@ -497,6 +562,8 @@
             // SEZIONE VALORI
             async function loadValoriData() {
                 try {
+                    const container = document.getElementById('valoriContainer');
+                    if (container) container.innerHTML = ''; // Clear container
                     const valori = await loadValori();
                     displayValori(valori);
                 } catch (error) {
@@ -574,6 +641,8 @@
                     document.getElementById('ingredientiTitolo').value = settings.titolo || '';
                     document.getElementById('ingredientiIntro').value = settings.introduzione || '';
                     
+                    const container = document.getElementById('ingredientiContainer');
+                    if (container) container.innerHTML = ''; // Clear container
                     const ingredienti = await loadIngredienti();
                     displayIngredienti(ingredienti);
                 } catch (error) {
@@ -662,6 +731,8 @@
                     document.getElementById('localeTitolo').value = settings.titolo || '';
                     document.getElementById('localeIntro').value = settings.introduzione || '';
                     
+                    const container = document.getElementById('galleryContainer');
+                    if (container) container.innerHTML = ''; // Clear container
                     const gallery = await loadGallery();
                     displayGallery(gallery);
                 } catch (error) {
@@ -2343,6 +2414,10 @@
 
     document.addEventListener('DOMContentLoaded', async function() {
         // Inizializza prima tutte le variabili degli elementi UI
+        // NOTE: team-related loadTeamData and displayTeam are now primarily handled by the first script block.
+        // The DOMContentLoaded listener should focus on UI elements that need the DOM to be ready
+        // and not re-define core data functions.
+
         const successAlert = document.getElementById('successAlert');
         const successMessage = document.getElementById('successMessage');
         const pizzaModal = document.getElementById('pizzaModal');
@@ -2558,9 +2633,10 @@
             tableBody.innerHTML = '';
             
             data.forEach(pizza => {
+                console.log('Loading image for pizza (DOMContentLoaded):', pizza.name, 'URL:', pizza.image);
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><img src="${pizza.image}" alt="${pizza.name}" class="img-thumbnail"></td>
+                    <td><img src="${pizza.image || './img/pizza1.jpg'}" alt="${pizza.name}" class="img-thumbnail"></td>
                     <td>${pizza.name}</td>
                     <td>${categoryMap[pizza.category]}</td>
                     <td>€ ${pizza.price.toFixed(2)}</td>
@@ -3574,210 +3650,175 @@
         const cancelTeamBtn = document.getElementById('cancelTeamBtn');
         const teamForm = document.getElementById('teamForm');
         const saveTeamSettingsBtn = document.getElementById('saveTeamSettingsBtn');
-        const teamSuccessAlert = document.getElementById('teamSuccessAlert');
-        const teamSuccessMessage = document.getElementById('teamSuccessMessage');
+        const teamSuccessAlert = document.getElementById('teamSuccessAlert'); // Keep if used by non-moved functions
+        const teamSuccessMessage = document.getElementById('teamSuccessMessage'); // Keep if used by non-moved functions
 
-        // Aggiungi membro del team
-        addTeamMemberBtn.addEventListener('click', function() {
-            teamForm.reset();
-            document.getElementById('teamMemberId').value = '';
-            document.getElementById('teamImagePreview').style.display = 'none';
-            document.getElementById('teamModalTitle').textContent = 'Aggiungi Membro del Team';
-            teamModal.classList.add('show');
-            modalBackdrop.classList.add('show');
-        });
 
-        // Chiudi modal team
-        closeTeamModal.addEventListener('click', function() {
-            teamModal.classList.remove('show');
-            modalBackdrop.classList.remove('show');
-        });
+        // TEAM EVENT LISTENERS (Modal handling, form submissions etc. specific to DOMContentLoaded if any)
+        // Note: Core loadTeamData, displayTeam, setupTeamEventListeners are now in the first script block.
+        // This section should only contain event listeners that absolutely must be here.
 
-        cancelTeamBtn.addEventListener('click', function() {
-            teamModal.classList.remove('show');
-            modalBackdrop.classList.remove('show');
-        });
+        const teamModal = document.getElementById('teamModal'); // Keep if used by other modals too
+        const addTeamMemberBtn = document.getElementById('addTeamMemberBtn');
+        const closeTeamModal = document.getElementById('closeTeamModal');
+        const cancelTeamBtn = document.getElementById('cancelTeamBtn');
+        const teamForm = document.getElementById('teamForm');
+        const saveTeamSettingsBtn = document.getElementById('saveTeamSettingsBtn');
+        // const teamSuccessAlert = document.getElementById('teamSuccessAlert'); // Already defined
+        // const teamSuccessMessage = document.getElementById('teamSuccessMessage'); // Already defined
 
-        // Salva impostazioni team
-        saveTeamSettingsBtn.addEventListener('click', async function() {
-            const saveBtn = this;
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Salvataggio...';
-            
-            try {
-                const titolo = document.getElementById('teamTitolo').value;
-                const introduzione = document.getElementById('teamIntro').value;
-                
-                await saveTeamSettings(titolo, introduzione);
-                showSuccessAlert('Impostazioni team salvate con successo!', teamSuccessAlert, teamSuccessMessage);
-            } catch (error) {
-                console.error("Errore durante il salvataggio:", error);
-                alert(`Errore durante il salvataggio: ${error.message}`);
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Salva Impostazioni';
-            }
-        });
+        if (addTeamMemberBtn) { // Ensure elements exist before adding listeners
+            addTeamMemberBtn.addEventListener('click', function() {
+                teamForm.reset();
+                document.getElementById('teamMemberId').value = '';
+                document.getElementById('teamImagePreview').style.display = 'none';
+                document.getElementById('teamModalTitle').textContent = 'Aggiungi Membro del Team';
+                teamModal.classList.add('show');
+                modalBackdrop.classList.add('show');
+            });
+        }
 
-        // Form submit per team
-        teamForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const saveBtn = document.getElementById('saveTeamBtn');
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Salvataggio...';
-            
-            try {
-                const memberId = document.getElementById('teamMemberId').value;
-                const memberData = {
-                    nome: document.getElementById('teamNome').value,
-                    ruolo: document.getElementById('teamRuolo').value,
-                    descrizione: document.getElementById('teamDescrizione').value,
-                    ordine: parseInt(document.getElementById('teamOrdine').value),
-                    status: parseInt(document.getElementById('teamStatus').value),
-                    social: {
-                        facebook: document.getElementById('teamFacebook').value || null,
-                        instagram: document.getElementById('teamInstagram').value || null,
-                        twitter: document.getElementById('teamTwitter').value || null
-                    }
-                };
-
-                const fileInput = document.getElementById('teamImage');
-                
-                if (memberId) {
-                    // Update existing member
-                    await updateTeamMember(memberId, memberData, fileInput.files[0]);
-                    showSuccessAlert('Membro del team aggiornato con successo!', teamSuccessAlert, teamSuccessMessage);
-                } else {
-                    // Add new member
-                    if (!fileInput.files[0]) {
-                        alert('Seleziona una foto per il membro del team');
-                        return;
-                    }
-                    await addTeamMember(memberData, fileInput.files[0]);
-                    showSuccessAlert('Membro del team aggiunto con successo!', teamSuccessAlert, teamSuccessMessage);
-                }
-                
-                // Reload team data
-                await loadTeamData();
-                
-                // Close modal
+        if (closeTeamModal) {
+            closeTeamModal.addEventListener('click', function() {
                 teamModal.classList.remove('show');
                 modalBackdrop.classList.remove('show');
-                
-            } catch (error) {
-                console.error("Errore durante il salvataggio:", error);
-                alert(`Errore durante il salvataggio: ${error.message}`);
-            } finally {
-                saveBtn.disabled = false;
-                saveBtn.textContent = 'Salva';
-            }
-        });
+            });
+        }
 
-        // Team image dropzone
+        if (cancelTeamBtn) {
+            cancelTeamBtn.addEventListener('click', function() {
+                teamModal.classList.remove('show');
+                modalBackdrop.classList.remove('show');
+            });
+        }
+
+        if (saveTeamSettingsBtn) {
+            saveTeamSettingsBtn.addEventListener('click', async function() {
+                const saveBtn = this;
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvataggio...';
+                
+                try {
+                    const titolo = document.getElementById('teamTitolo').value;
+                    const introduzione = document.getElementById('teamIntro').value;
+
+                    // saveTeamSettings is imported and available from the first script block's scope
+                    await saveTeamSettings(titolo, introduzione);
+                    showSuccessAlert('Impostazioni team salvate con successo!', teamSuccessAlert, teamSuccessMessage);
+                } catch (error) {
+                    console.error("Errore durante il salvataggio:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Salva Impostazioni';
+                }
+            });
+        }
+
+        if (teamForm) {
+            teamForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const saveBtn = document.getElementById('saveTeamBtn');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvataggio...';
+                
+                try {
+                    const memberId = document.getElementById('teamMemberId').value;
+                    const memberData = {
+                        nome: document.getElementById('teamNome').value,
+                        ruolo: document.getElementById('teamRuolo').value,
+                        descrizione: document.getElementById('teamDescrizione').value,
+                        ordine: parseInt(document.getElementById('teamOrdine').value),
+                        status: parseInt(document.getElementById('teamStatus').value),
+                        social: {
+                            facebook: document.getElementById('teamFacebook').value || null,
+                            instagram: document.getElementById('teamInstagram').value || null,
+                            twitter: document.getElementById('teamTwitter').value || null
+                        }
+                    };
+
+                    const fileInput = document.getElementById('teamImage');
+
+                    // addTeamMember and updateTeamMember are imported and available
+                    if (memberId) {
+                        await updateTeamMember(memberId, memberData, fileInput.files[0]);
+                        showSuccessAlert('Membro del team aggiornato con successo!', teamSuccessAlert, teamSuccessMessage);
+                    } else {
+                        if (!fileInput.files[0]) {
+                            alert('Seleziona una foto per il membro del team');
+                            saveBtn.disabled = false; // Re-enable button
+                            saveBtn.textContent = 'Salva';
+                            return;
+                        }
+                        await addTeamMember(memberData, fileInput.files[0]);
+                        showSuccessAlert('Membro del team aggiunto con successo!', teamSuccessAlert, teamSuccessMessage);
+                    }
+
+                    // loadTeamData is defined in the first script block and should be globally accessible as it's not module-scoped to DOMContentLoaded
+                    await loadTeamData();
+
+                    teamModal.classList.remove('show');
+                    modalBackdrop.classList.remove('show');
+
+                } catch (error) {
+                    console.error("Errore durante il salvataggio:", error);
+                    alert(`Errore durante il salvataggio: ${error.message}`);
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Salva';
+                }
+            });
+        }
+
+        // Team image dropzone (assuming handleImageSelection is globally available or moved too)
         const teamDropzone = document.getElementById('teamImageDropzone');
         const teamFileInput = document.getElementById('teamImage');
         const removeTeamImageBtn = document.getElementById('removeTeamImage');
 
-        teamDropzone.addEventListener('click', function() {
-            teamFileInput.click();
-        });
-
-        teamDropzone.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.style.borderColor = 'var(--primary)';
-            this.style.backgroundColor = 'var(--primary-light)';
-        });
-
-        teamDropzone.addEventListener('dragleave', function() {
-            this.style.borderColor = '#ced4da';
-            this.style.backgroundColor = '';
-        });
-
-        teamDropzone.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.style.borderColor = '#ced4da';
-            this.style.backgroundColor = '';
-            
-            if (e.dataTransfer.files.length) {
-                teamFileInput.files = e.dataTransfer.files;
-                handleImageSelection(teamFileInput, 'teamPreviewImage', 'teamImagePreview');
-            }
-        });
-
-        teamFileInput.addEventListener('change', function() {
-            handleImageSelection(this, 'teamPreviewImage', 'teamImagePreview');
-        });
-
-        removeTeamImageBtn.addEventListener('click', function() {
-            teamFileInput.value = '';
-            document.getElementById('teamImagePreview').style.display = 'none';
-        });
-
-        // Function to setup team event listeners for edit/delete buttons
-        function setupTeamEventListeners() {
-            document.querySelectorAll('.edit-team-btn').forEach(btn => {
-                btn.addEventListener('click', async function() {
-                    const memberId = this.getAttribute('data-id');
-                    try {
-                        const team = await loadTeam();
-                        const member = team.find(m => m.id === memberId);
-                        
-                        if (member) {
-                            document.getElementById('teamMemberId').value = member.id;
-                            document.getElementById('teamNome').value = member.nome;
-                            document.getElementById('teamRuolo').value = member.ruolo;
-                            document.getElementById('teamDescrizione').value = member.descrizione;
-                            document.getElementById('teamOrdine').value = member.ordine;
-                            document.getElementById('teamStatus').value = member.status;
-                            
-                            // Social links
-                            document.getElementById('teamFacebook').value = member.social?.facebook || '';
-                            document.getElementById('teamInstagram').value = member.social?.instagram || '';
-                            document.getElementById('teamTwitter').value = member.social?.twitter || '';
-                            
-                            // Image preview
-                            if (member.image) {
-                                document.getElementById('teamPreviewImage').src = member.image;
-                                document.getElementById('teamImagePreview').style.display = 'flex';
-                            }
-                            
-                            document.getElementById('teamModalTitle').textContent = 'Modifica Membro del Team';
-                            teamModal.classList.add('show');
-                            modalBackdrop.classList.add('show');
-                        }
-                    } catch (error) {
-                        console.error("Errore durante il recupero del membro:", error);
-                        alert("Errore durante il recupero del membro del team");
-                    }
-                });
+        if (teamDropzone) {
+            teamDropzone.addEventListener('click', function() {
+                teamFileInput.click();
             });
 
-            document.querySelectorAll('.delete-team-btn').forEach(btn => {
-                btn.addEventListener('click', async function() {
-                    if (confirm('Sei sicuro di voler eliminare questo membro del team?')) {
-                        const memberId = this.getAttribute('data-id');
-                        try {
-                            await deleteTeamMember(memberId);
-                            await loadTeamData();
-                            showSuccessAlert('Membro del team eliminato con successo!', teamSuccessAlert, teamSuccessMessage);
-                        } catch (error) {
-                            console.error("Errore durante l'eliminazione:", error);
-                            alert("Errore durante l'eliminazione del membro del team");
-                        }
-                    }
-                });
+            teamDropzone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.style.borderColor = 'var(--primary)';
+                this.style.backgroundColor = 'var(--primary-light)';
+            });
+
+            teamDropzone.addEventListener('dragleave', function() {
+                this.style.borderColor = '#ced4da';
+                this.style.backgroundColor = '';
+            });
+
+            teamDropzone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.borderColor = '#ced4da';
+                this.style.backgroundColor = '';
+
+                if (e.dataTransfer.files.length) {
+                    teamFileInput.files = e.dataTransfer.files;
+                    handleImageSelection(teamFileInput, 'teamPreviewImage', 'teamImagePreview'); // Ensure handleImageSelection is accessible
+                }
             });
         }
 
-        // Update displayTeam function to call setupTeamEventListeners
-        const originalDisplayTeam = displayTeam;
-        displayTeam = function(team) {
-            originalDisplayTeam(team);
-            setupTeamEventListeners();
-        };
+        if (teamFileInput) {
+            teamFileInput.addEventListener('change', function() {
+                handleImageSelection(this, 'teamPreviewImage', 'teamImagePreview'); // Ensure handleImageSelection is accessible
+            });
+        }
+
+        if (removeTeamImageBtn) {
+            removeTeamImageBtn.addEventListener('click', function() {
+                teamFileInput.value = '';
+                document.getElementById('teamImagePreview').style.display = 'none';
+            });
+        }
 
         // Chiudi i modal se si clicca fuori (solo su modalBackdrop)
+        // This should be safe to keep here as modalBackdrop is a general element.
         modalBackdrop.addEventListener('click', function() {
             pizzaModal.classList.remove('show');
             deleteModal.classList.remove('show');
