@@ -490,9 +490,7 @@
                 }
                 
                 lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
-            }, false);
-
-            // SMOOTH SCROLL
+            }, false);            // SMOOTH SCROLL
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function (e) {
                     e.preventDefault();
@@ -507,21 +505,22 @@
                             behavior: 'smooth'
                         });
                     }
-                });            });
+                });
+            });
 
             // TEAM LOADING FROM FIREBASE
             async function loadTeamFromFirebase() {
                 try {
                     // Import Firebase modules
                     const { auth, db } = await import('./js/firebase-config.js');
-                    const { collection, getDocs, query, where, orderBy } = await import('https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js');
+                    const { collection, getDocs, query, where, orderBy, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore.js');
                     
-                    // Load team settings
-                    const teamSettingsRef = collection(db, 'team-settings');
-                    const teamSettingsSnapshot = await getDocs(teamSettingsRef);
+                    // Load team settings from settings/team document
+                    const settingsRef = doc(db, 'settings', 'team');
+                    const settingsSnap = await getDoc(settingsRef);
                     
-                    if (!teamSettingsSnapshot.empty) {
-                        const settings = teamSettingsSnapshot.docs[0].data();
+                    if (settingsSnap.exists()) {
+                        const settings = settingsSnap.data();
                         if (settings.titolo) {
                             document.getElementById('teamTitle').textContent = settings.titolo;
                         }
